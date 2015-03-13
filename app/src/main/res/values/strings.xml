@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">TouchFramework</string>
+
+    <string-array name="listofthings">
+
+        <item>airplane</item>
+        <item>boy</item>
+        <item>car</item>
+        <item>dart</item>
+        <item>egg</item>
+        <item>feather</item>
+        <item>glue</item>
+        <item>hat</item>
+        <item>ink</item>
+        <item>jet</item>
+        <item>kettle</item>
+        <item>lock</item>
+
+    </string-array>
+
+</resources>
