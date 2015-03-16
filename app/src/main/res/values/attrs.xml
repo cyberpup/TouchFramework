@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="RayCustomLayout">
-        <attr name="android:layout_gravity" />
-        <attr name="layout_position">
-            <enum name="quad1" value="0" />
-            <enum name="quad2" value="1" />
-            <enum name="quad3" value="2" />
-            <enum name="quad4" value="3" />
-        </attr>
+    <declare-styleable name="CollageView">
+
+        <attr name="image_front" format="integer"/>
+        <attr name="image_mid" format="integer"/>
+        <attr name="image_back" format="integer"/>
+        <attr name="android:text" />
+        <attr name="android:textSize" />
+        <attr name="android:textColor" />
+        <attr name="android:spacing" />
     </declare-styleable>
+
 </resources>
