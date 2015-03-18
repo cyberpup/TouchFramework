@@ -1,11 +1,14 @@
 package ray.cyberpup.com.touchframework;
 
 import android.content.Context;
+import android.content.res.TypedArray;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -20,6 +23,12 @@ import java.util.List;
  * Be careful not to set child views layout height and widths too big (i.e. overlap)
  * Otherwise, the contents of the child views will not remain in their quadrants
  * and strange displays will result.
+ *
+ * ViewGroup's responsibilities:
+ * 1) Measure itself using setMeasuredDimension()
+ * 2) Tell its children to measure themselves using measureChildren()
+ *
+ *
  * <p/>
  * Created on 3/13/15
  *
@@ -29,6 +38,59 @@ public class ViewGroupA extends ViewGroup {
 
     private static final String LOG_TAG = ViewGroupA.class.getSimpleName();
 
+    private Paint mDiagonalLine;
+
+
+    /**
+     * Viewgroup's draw logic
+     *
+     * @param canvas
+     */
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+
+        super.dispatchDraw(canvas);
+        int count = 0;
+        if (mLines){
+
+            int deltaY=50;
+            int deltaX=10;
+
+            // Draw diagonals
+            int startX=0;
+            int startY=0;
+            int endY=0;
+            int endX=1;
+
+            if (getHeight() < getWidth()) {
+
+                Log.d(LOG_TAG, "W > H");
+                // draw from y axis to x axis
+                for(startY=1; startY<=getHeight()*2; startY+=deltaY) {
+
+                    endX = startY;
+                    canvas.drawLine(startX, startY, endX, endY, mDiagonalLine);
+                    count++;
+                }
+            } else {
+
+                Log.d(LOG_TAG, "W < H");
+                // draw from x axis to y axis
+                for(startX = 1; startX<=getWidth()*2; startX+=deltaX) {
+
+                    endY = startX;
+                    canvas.drawLine(startX, startY, endX, endY, mDiagonalLine);
+                }
+            }
+        }
+        Log.d(LOG_TAG, "# of lines drawn: "+count);
+
+
+
+
+    }
+
+    /*
     //-------------------------------------------
     // Demonstrate Android's Touch Framework logic
 
@@ -38,25 +100,25 @@ public class ViewGroupA extends ViewGroup {
         // getActionMasked "masks out the pointer info and returns only the event
         switch(event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
-                mTextView.append("ViewGroupA dispatchTouchEvent DOWN\n");
+                mTextView.append("ViewGroupB dispatchTouchEvent DOWN\n");
                 break;
             case MotionEvent.ACTION_MOVE:
-                mTextView.append("ViewGroupA dispatchTouchEvent MOVE\n");
+                mTextView.append("ViewGroupB dispatchTouchEvent MOVE\n");
                 break;
             case MotionEvent.ACTION_UP:
-                mTextView.append("ViewGroupA dispatchTouchEvent UP\n");
+                mTextView.append("ViewGroupB dispatchTouchEvent UP\n");
                 break;
             case MotionEvent.ACTION_CANCEL:
-                mTextView.append("ViewGroupA dispatchTouchEvent CANCEL\n");
+                mTextView.append("ViewGroupB dispatchTouchEvent CANCEL\n");
                 break;
 
         }
         boolean b=super.dispatchTouchEvent(event);
-        mTextView.append("ViewGroupA dispatchTouchEvent RETURNS " + b + "\n");
+        mTextView.append("ViewGroupB dispatchTouchEvent RETURNS " + b + "\n");
         return b;
     }
 
-
+*/
     //--------------------------------------------
 
 
@@ -69,18 +131,27 @@ public class ViewGroupA extends ViewGroup {
     private final Rect mTmpChildRect = new Rect();
 
     public ViewGroupA(Context context) {
-        super(context);
-        Log.d(LOG_TAG, "ViewGroupA(context)");
+        this(context, null);
+        //Log.d(LOG_TAG, "ViewGroupB(context)");
     }
 
     public ViewGroupA(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
-        Log.d(LOG_TAG, "ViewGroupA(context, attrs)");
+        //Log.d(LOG_TAG, "ViewGroupB(context, attrs)");
     }
+
+    boolean mLines;
 
     public ViewGroupA(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        Log.d(LOG_TAG, "ViewGroupA(context,attrs,defStyle");
+
+        mDiagonalLine = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mDiagonalLine.setStyle(Paint.Style.STROKE);
+        mDiagonalLine.setColor(Color.RED);
+        mDiagonalLine.setStrokeWidth(2);
+        //Log.d(LOG_TAG, "ViewGroupB(context,attrs,defStyle");
+        TypedArray a = context.obtainStyledAttributes(attrs,R.styleable.CustomAttrs);
+        mLines = a.getBoolean(R.styleable.CustomAttrs_lines, false);
 
     }
 
@@ -112,6 +183,12 @@ public class ViewGroupA extends ViewGroup {
      */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+
+        int width, height;
+
+        // Compute size of this view group based on
+        width = getDefaultSize(0, widthMeasureSpec);
+        height = getDefaultSize(0, heightMeasureSpec);
 
         final int count = getChildCount();
         Log.d(LOG_TAG, "count="+count);
@@ -334,13 +411,14 @@ public class ViewGroupA extends ViewGroup {
 
             // Pull the layout param values from the layout XML during
             // inflation.  This is needed to change the layout behavior in XML.
-            //TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.RayCustomLayout);
-            //gravity = a.getInt(R.styleable.RayCustomLayout_android_layout_gravity, gravity);
-           // position = a.getInt(R.styleable.RayCustomLayout_layout_position, position);
+            TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.CustomAttrs);
+            gravity = a.getInt(R.styleable.CustomAttrs_android_gravity, gravity);
+            position = a.getInt(R.styleable.CustomAttrs_layout_position, position);
 
+            Log.d(LOG_TAG,"position:"+position);
             // Do NOT call this TypedArray again after recycling
             // Similar to clearing a pointer in C
-            //a.recycle();
+            a.recycle();
         }
 
 

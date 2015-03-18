@@ -1,22 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:ray="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:collage="http://schemas.android.com/apk/res-auto"
+    xmlns:viewgroup="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
 
-    <ray.cyberpup.com.touchframework.CollageView
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:layout_gravity="center"
-        ray:image_front="@drawable/vw"
-        ray:image_mid="@drawable/minicar"
-        ray:image_back="@drawable/yellowchevy"
+    <TextView
+        android:id="@+id/log_display"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scrollbars="vertical"
+        android:background="#000000"
+        android:text="Display Log"/>
+
+    <ray.cyberpup.com.touchframework.ViewGroupB
+        android:id="@+id/group1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/log_display"
+        android:background="#ff9bd7ff"
+        viewgroup:touch_color="#FF9BD7FF"
+        android:text="View Group 1"
+        viewgroup:lines="false">
+
+        <ray.cyberpup.com.touchframework.ViewGroupB
+            android:id="@+id/group2"
+            android:layout_width="250dp"
+            android:layout_height="220dp"
+            android:layout_below="@id/log_display"
+            android:text="View Group 2"
+            android:background="#fffff172"
+            viewgroup:touch_color="#fffff172"
+
+            viewgroup:lines="false">
+
+            <ray.cyberpup.com.touchframework.CollageView
+                android:id="@+id/collage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                collage:image_back="@drawable/yellowchevy"
+                collage:image_front="@drawable/vw"
+                collage:image_mid="@drawable/minicar"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp"
+                android:background="#ffecfdff"/>
+
+        </ray.cyberpup.com.touchframework.ViewGroupB>
+
+    </ray.cyberpup.com.touchframework.ViewGroupB>
 
 
-
-/>
-
-
-
-</FrameLayout>
+</RelativeLayout>

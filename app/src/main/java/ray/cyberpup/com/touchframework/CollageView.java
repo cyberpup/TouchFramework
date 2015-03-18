@@ -3,13 +3,19 @@ package ray.cyberpup.com.touchframework;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.TextView;
 
 /**
  *
  * Assembles 3 images into a collage
+ *
+ * Initial painting logic is included and should be expanded
+ * should custom painting on the view is desired.
  *
  * Created on 3/14/15
  *
@@ -17,14 +23,16 @@ import android.view.View;
  */
 public class CollageView extends View {
 
+
+
     private static final String LOG_TAG = CollageView.class.getSimpleName();
-    private Drawable mImageFront = null, mImageMid = null, mImageBack = null;
+    public Drawable mImageFront = null, mImageMid = null, mImageBack = null;
 
     // Positions of Back and Front Images in relation to Middle Image
-    private static final float BACK_MOVE_UP_BY = 0.10f;
-    private static final float BACK_MOVE_LEFT_BY = 0.25f;
-    private static final float FRONT_MOVE_DOWN_BY = 0.10f;
-    private static final float FRONT_MOVE_LEFT_BY = 0.25f;
+    private static float BACK_MOVE_UP_BY = 0.10f;
+    private static float BACK_MOVE_LEFT_BY = 0.25f;
+    private static float FRONT_MOVE_DOWN_BY = 0.10f;
+    private static float FRONT_MOVE_LEFT_BY = 0.25f;
 
     public CollageView(Context context) {
         super(context);
@@ -38,27 +46,103 @@ public class CollageView extends View {
         super(context, attrs, defStyleAttr);
 
         TypedArray a = context.obtainStyledAttributes(attrs,
-                R.styleable.CollageView,
+                R.styleable.Collage,
                 0,
                 defStyleAttr);
 
-        Drawable d = a.getDrawable(R.styleable.CollageView_image_mid);
+        Drawable d = a.getDrawable(R.styleable.Collage_image_mid);
         if (d != null) {
             setMidImage(d);
         }
 
-        d = a.getDrawable(R.styleable.CollageView_image_front);
+        d = a.getDrawable(R.styleable.Collage_image_front);
         if (d != null) {
             setFrontImage(d);
         }
 
-        d = a.getDrawable(R.styleable.CollageView_image_back);
+        d = a.getDrawable(R.styleable.Collage_image_back);
         if (d != null) {
             setBackImage(d);
         }
 
+        // Always call this to release TypedArray and don't
         a.recycle();
 
+        // Uncomment to release painting feature
+        // paintInit();
+    }
+
+    // Uncomment to start painting over the view
+    /*
+    private Paint mGridPaint;
+    private void paintInit(){
+        mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mGridPaint.setStyle(Paint.Style.STROKE);
+        mGridPaint.setColor(Color.RED);
+        mGridPaint.setStrokeWidth(5);
+
+    }
+
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        super.dispatchDraw(canvas);
+        drawRectBorder(canvas);
+    }
+
+    private void drawRectBorder(Canvas canvas){
+        float left = 0;
+        float right = getWidth();
+        float top = 0;
+        float bottom = getHeight();
+        canvas.drawRect(left, top, right, bottom, mGridPaint);
+    }
+    */
+
+    // Only for Touch Framework App
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mTextView.setTextColor(Color.WHITE);
+
+        switch(event.getActionMasked()){
+            case MotionEvent.ACTION_DOWN:
+                mTextView.append(LOG_TAG + " onTouchEvent DOWN\n");
+                break;
+            case MotionEvent.ACTION_MOVE:
+                mTextView.append(LOG_TAG+" onTouchEvent MOVE\n");
+                break;
+            case MotionEvent.ACTION_UP:
+                mTextView.append(LOG_TAG+" onTouchEvent UP\n");
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                mTextView.append(LOG_TAG+" onTouchEvent CANCEL\n");
+                break;
+
+        }
+        boolean b=super.onTouchEvent(event);
+        mTextView.append(LOG_TAG+" onTouchEvent RETURNS " + b + "\n");
+        return b;
+    }
+
+    // Only for Touch Framework App
+    private TextView mTextView;
+    public void setPointerToTextView(TextView textView){
+        mTextView = textView;
+
+
+    }
+
+    public void setFrontImage(int resId){
+        mImageFront = getResources().getDrawable(resId);
+        setFrontImage(mImageFront);
+    }
+    public void setMidImage(int resId){
+        mImageMid = getResources().getDrawable(resId);
+        setMidImage(mImageMid);
+    }
+    public void setBackImage(int resId){
+        mImageBack = getResources().getDrawable(resId);
+        setBackImage(mImageBack);
     }
 
     private void setMidImage(Drawable image) {

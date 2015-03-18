@@ -2,6 +2,7 @@ package ray.cyberpup.com.touchframework;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -16,7 +17,7 @@ import android.widget.TextView;
 public class TouchFramework extends Activity {
 
     private static final String LOG_TAG=TouchFramework.class.getSimpleName();
-    private static TextView textView;
+    private static TextView mTextView;
     private static ListView[] mListViews;
     private static ArrayAdapter<String>[] mAdapters;
     private static final int NUMBER_OF_LISTS = 4;
@@ -24,6 +25,25 @@ public class TouchFramework extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mTextView = (TextView)findViewById(R.id.log_display);
+        mTextView.setTextSize(12);
+
+        // Creates a scrollable text view
+        mTextView.setMovementMethod(new ScrollingMovementMethod());
+
+        ViewGroupB group1 =(ViewGroupB)findViewById(R.id.group1);
+       group1.setPointerToTextView(mTextView);
+
+        ViewGroupB group2 =(ViewGroupB)findViewById(R.id.group2);
+        group2.setPointerToTextView(mTextView);
+
+        CollageView view = (CollageView)findViewById(R.id.collage);
+        view.setPointerToTextView(mTextView);
+
+
+
+
 /*
         // Initialize array
         mListViews = new ListView[NUMBER_OF_LISTS];
@@ -62,9 +82,9 @@ public class TouchFramework extends Activity {
         //textView = (TextView)findViewById(R.id.textView);
         //textView.setTextSize(12);
 
-        // Pass TextView over to ViewGroupA so ViewGroupA can display
+        // Pass TextView over to ViewGroupB so ViewGroupB can display
         // touch events
-        //ViewGroupA viewGroupA = (ViewGroupA)findViewById(R.id.my_viewgroup_a);
+        //ViewGroupB viewGroupA = (ViewGroupB)findViewById(R.id.my_viewgroup_a);
         //viewGroupA.setPointerToTextView(textView);
 
 

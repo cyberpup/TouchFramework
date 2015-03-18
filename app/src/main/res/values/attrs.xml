@@ -1,6 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="CollageView">
+    <declare-styleable name="CustomAttrs">
+
+
+
+        <attr name="layout_position" format="enum">
+
+            <enum name = "quad1" value="0"/>
+            <enum name = "quad2" value="1"/>
+            <enum name = "quad3" value="2"/>
+            <enum name = "quad4" value="3"/>
+
+        </attr>
+
+        <attr name="lines" format="boolean"/>
+        <attr name="android:text"/>
+        <attr name="touch_color" format="color"/>
+
+        <attr name="android:gravity"/>
+
+    </declare-styleable>
+
+
+    <declare-styleable name = "Collage">
 
         <attr name="image_front" format="integer"/>
         <attr name="image_mid" format="integer"/>
