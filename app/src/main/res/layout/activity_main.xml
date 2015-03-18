@@ -44,7 +44,7 @@
                 collage:image_mid="@drawable/minicar"
                 android:layout_marginLeft="30dp"
                 android:layout_marginRight="30dp"
-                android:background="#ffecfdff"/>
+                android:background="#FFFFFF"/>
 
         </ray.cyberpup.com.touchframework.ViewGroupB>
 
