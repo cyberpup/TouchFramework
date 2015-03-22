@@ -10,6 +10,18 @@ import android.widget.TextView;
 
 /**
  * Demonstrates how Android's Touch Dispatch framework functions
+ *
+ * NOTE:
+ * This may not be very visually impressive but it was quite a challenge
+ * for me to write, as one needs to understand how the touch
+ * dispatch framework functions to code this properly. It is not enough to merely
+ * add append statements to the TextView during touch framework calls to
+ * display the properly call sequence.
+ *
+ * Also, I've left out calls to DecorView as I wanted to display text from
+ * within the framework. Since I don't know of a way to override the calls from
+ * the DecorView or ViewRoot, I left those calls out.
+ *
  * Created on 3/12/15
  *
  * @author Raymond Tong
@@ -77,7 +89,7 @@ public class TouchFramework extends Activity
 
         Log.d(LOG_TAG, "clearing external file...");
         mWriteToFile =true;
-        mTypeTouched = ViewType.STARTUP;
+        mTypeTouched = ViewType.INACTIVE;
         Log.d(LOG_TAG, "Write to File stopped.");
     }
 
@@ -86,16 +98,14 @@ public class TouchFramework extends Activity
         Log.d(LOG_TAG, "WTF: "+log);
     }
 
-
-    boolean mEnd=false;
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
 
-
         Log.d(LOG_TAG, "mTypeTouched = " + mTypeTouched);
         boolean b;
-        if(mTypeTouched!=ViewType.INACTIVE){
-            //mWriteToFile = true;
+
+        if (mTypeTouched != mTypeTouched.INACTIVE) {
+
             String result = "";
             // getAction returns both pointer and the event
             // getActionMasked "masks out the pointer info and returns only the event
@@ -120,25 +130,26 @@ public class TouchFramework extends Activity
                     break;
             }
             //Log.d(LOG_TAG, "Activity dispatchTouchEvent: " + result);
-            //if(mWriteToFile)
-            //   writeToFile("Activity dispatchTouchEvent: " + result + "\n");
-
-            b= super.dispatchTouchEvent(event);
             //Log.d(LOG_TAG, "Activity dispatchTouchEvent RETURNS: " + b + "\n");
 
-
+            //if(mWriteToFile)
             writeToFile("Activity dispatchTouchEvent: " + result + "\n");
+            b = super.dispatchTouchEvent(event);
+            //if(mWriteToFile)
             writeToFile("Activity dispatchTouchEvent RETURNS: " + b + "\n");
+
             if (!mWriteToFile) {
                 printToDisplay();
             }
 
-        } else{
-            b = super.dispatchTouchEvent(event);
+            return b;
+
+        }else{
+            return super.dispatchTouchEvent(event);
         }
-        return b;
 
     }
+    // flag indicate whether to write to file or not
     boolean mWriteToFile = true;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -155,11 +166,16 @@ public class TouchFramework extends Activity
                 result = "MOVE";
                 break;
 
-            // Event was either consumed or not
+            // Touch Dispatch events end here for views/viewgroups
+            // that ignore the touch event
             case MotionEvent.ACTION_UP:
                 //mTextView.append("Activity onTouchEvent UP\n");
                 result = "UP";
                 // Event was not consumed, end of touch process
+                // if the current view is a simple view, then check
+                // to see if the current onTouchEvent(event) returns
+                // false (it will return true if the view captured
+                // the event
                 b = super.onTouchEvent(event);
                 if (mTypeTouched==ViewType.VIEWGROUP ||
                         (mTypeTouched==ViewType.VIEW && b==false)){
