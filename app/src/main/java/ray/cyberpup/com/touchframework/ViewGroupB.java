@@ -1,5 +1,6 @@
 package ray.cyberpup.com.touchframework;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -34,6 +35,15 @@ public class ViewGroupB extends ViewGroup {
 
     private Paint mDiagonalLine;
 
+    private TouchFramework mActivity;
+    // Interface to communicate back to Activity that this view was clicked
+    protected interface Bridge{
+        public void setViewType(View type);
+    }
+
+    public void setBridge(Activity activity){
+        mActivity = (TouchFramework)activity;
+    }
 
     /**
      * Viewgroup's draw logic
@@ -110,6 +120,23 @@ public class ViewGroupB extends ViewGroup {
                         left + child.getMeasuredWidth(),
                         top + child.getMeasuredHeight());
         }
+        if (count == 2){
+            View child1 = getChildAt(0);
+            left = 0;
+            top = getHeight()/2 - child1.getMeasuredHeight()/2;
+            child1.layout(left,
+                    top,
+                    left + child1.getMeasuredWidth(),
+                    top + child1.getMeasuredHeight());
+
+            View child2 = getChildAt(1);
+            left = left + child1.getMeasuredWidth();
+            child2.layout(left,
+                        top,
+                        left+child2.getMeasuredWidth(),
+                    top + child2.getMeasuredHeight());
+
+        }
     }
 
     /**
@@ -139,83 +166,94 @@ public class ViewGroupB extends ViewGroup {
 
     }
 
-
     //-------------------------------------------
     // Demonstrate Android's Touch Framework logic
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-
-
+        mActivity.setViewType(this);
+        String result="";
         mTextView.setTextColor(mTouchColor);
-        mTextView.setText("");
+        //mTextView.setText("");
         // getAction returns both pointer and the event
         // getActionMasked "masks out the pointer info and returns only the event
         switch(event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
-                mTextView.append(mText + " dispatchTouchEvent DOWN\n");
+                result="DOWN";
                 break;
             case MotionEvent.ACTION_MOVE:
-                mTextView.append(mText+" dispatchTouchEvent MOVE\n");
+                result="MOVE";
                 break;
             case MotionEvent.ACTION_UP:
-                mTextView.append(mText+" dispatchTouchEvent UP\n");
+                result="UP";
                 break;
             case MotionEvent.ACTION_CANCEL:
-                mTextView.append(mText+" dispatchTouchEvent CANCEL\n");
+                result="CANCEL";
                 break;
 
         }
+
+        Log.d(LOG_TAG, mText + " dispatchTouchEvent: " + result);
+        mActivity.writeToFile(mText + " dispatchTouchEvent: " + result + "\n");
+
         boolean b=super.dispatchTouchEvent(event);
-        mTextView.append(mText+" dispatchTouchEvent RETURNS " + b + "\n");
+        Log.d(LOG_TAG, mText + " dispatchTouchEvent RETURNS " + b + "\n");
+        mActivity.writeToFile(mText + " dispatchTouchEvent RETURNS " + b + "\n");
         return b;
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-
-
+        String result="";
         switch(event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
-                mTextView.append(mText + " onTouchEvent DOWN\n");
+                result="DOWN";
                 break;
             case MotionEvent.ACTION_MOVE:
-                mTextView.append(mText+" onTouchEvent MOVE\n");
+                result="MOVE";
                 break;
             case MotionEvent.ACTION_UP:
-                mTextView.append(mText+" onTouchEvent UP\n");
+                result="UP";
                 break;
             case MotionEvent.ACTION_CANCEL:
-                mTextView.append(mText+" onTouchEvent CANCEL\n");
+                result="CANCEL";
                 break;
 
         }
+        Log.d(LOG_TAG, mText + " onTouchEvent: " + result);
+        mActivity.writeToFile(mText + " onTouchEvent: " + result + "\n");
+
         boolean b=super.onTouchEvent(event);
-        mTextView.append(mText+" onTouchEvent RETURNS " + b + "\n");
+        Log.d(LOG_TAG, mText + " onTouchEvent RETURNS: " + b + "\n");
+        mActivity.writeToFile(mText + " onTouchEvent RETURNS: " + b + "\n");
         return b;
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
 
+        String result="";
         switch(event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
-                mTextView.append(mText + " onInterceptTouchEvent DOWN\n");
+                result="DOWN";
                 break;
             case MotionEvent.ACTION_MOVE:
-                mTextView.append(mText+" onInterceptTouchEvent MOVE\n");
+                result="MOVE";
                 break;
             case MotionEvent.ACTION_UP:
-                mTextView.append(mText+" onInterceptTouchEvent UP\n");
+                result="UP";
                 break;
             case MotionEvent.ACTION_CANCEL:
-                mTextView.append(mText+" onInterceptTouchEvent CANCEL\n");
+                result="CANCEL";
                 break;
-
         }
+
+        Log.d(LOG_TAG, mText + " onInterceptTouchEvent: " + result);
+        mActivity.writeToFile(mText + " onInterceptTouchEvent: " + result + "\n");
+
         boolean b=super.onInterceptTouchEvent(event);
-        mTextView.append(mText+" onInterceptTouchEvent RETURNS " + b + "\n");
+        mActivity.writeToFile(mText + " onInterceptTouchEvent RETURNS: " + b + "\n");
         return b;
     }
 

@@ -1,22 +1,23 @@
 package ray.cyberpup.com.touchframework;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
 /**
- *
  * Assembles 3 images into a collage
- *
+ * <p/>
  * Initial painting logic is included and should be expanded
  * should custom painting on the view is desired.
- *
+ * <p/>
  * Created on 3/14/15
  *
  * @author Raymond Tong
@@ -24,8 +25,11 @@ import android.widget.TextView;
 public class CollageView extends View {
 
 
-
     private static final String LOG_TAG = CollageView.class.getSimpleName();
+
+    private TouchFramework mActivity;
+    private String mText;
+    private int mColor;
     public Drawable mImageFront = null, mImageMid = null, mImageBack = null;
 
     // Positions of Back and Front Images in relation to Middle Image
@@ -33,6 +37,16 @@ public class CollageView extends View {
     private static float BACK_MOVE_LEFT_BY = 0.25f;
     private static float FRONT_MOVE_DOWN_BY = 0.10f;
     private static float FRONT_MOVE_LEFT_BY = 0.25f;
+
+    // Interface to communicate back to Activity that this view was clicked
+    protected interface Bridge {
+        public void setViewType(View type);
+    }
+
+    public void setBridge(Activity activity) {
+        mActivity = (TouchFramework) activity;
+    }
+
 
     public CollageView(Context context) {
         super(context);
@@ -64,6 +78,10 @@ public class CollageView extends View {
         if (d != null) {
             setBackImage(d);
         }
+
+        mText = a.getString(R.styleable.Collage_android_text);
+        mColor = a.getColor(R.styleable.Collage_android_textColor, Color.WHITE);
+
 
         // Always call this to release TypedArray and don't
         a.recycle();
@@ -100,47 +118,87 @@ public class CollageView extends View {
 
     // Only for Touch Framework App
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        mTextView.setTextColor(Color.WHITE);
 
-        switch(event.getActionMasked()){
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        mActivity.setViewType(this);
+        mTextView.setTextColor(mColor);
+        String result = "";
+        // mTextView.setText("");
+        // getAction returns both pointer and the event
+        // getActionMasked "masks out the pointer info and returns only the event
+        switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                mTextView.append(LOG_TAG + " onTouchEvent DOWN\n");
+                result = "DOWN";
                 break;
             case MotionEvent.ACTION_MOVE:
-                mTextView.append(LOG_TAG+" onTouchEvent MOVE\n");
+                result = "MOVE";
                 break;
             case MotionEvent.ACTION_UP:
-                mTextView.append(LOG_TAG+" onTouchEvent UP\n");
+                result = "UP";
                 break;
             case MotionEvent.ACTION_CANCEL:
-                mTextView.append(LOG_TAG+" onTouchEvent CANCEL\n");
+                result = "CANCEL";
                 break;
 
         }
-        boolean b=super.onTouchEvent(event);
-        mTextView.append(LOG_TAG+" onTouchEvent RETURNS " + b + "\n");
+        //Log.d(LOG_TAG, mText + " dispatchTouchEvent: " + result);
+        mActivity.writeToFile(mText + " dispatchTouchEvent: " + result + "\n");
+
+        boolean b=super.dispatchTouchEvent(event);
+        Log.d(LOG_TAG, mText + " dispatchTouchEvent RETURNS " + b + "\n");
+        mActivity.writeToFile(mText + " dispatchTouchEvent RETURNS " + b + "\n");
         return b;
     }
+/*
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mTextView.setTextColor(mColor);
+        String result = "";
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                result = "DOWN";
+                break;
+            case MotionEvent.ACTION_MOVE:
+                result = "MOVE";
+                break;
+            case MotionEvent.ACTION_UP:
+                result = "UP";
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                result = "CANCEL";
+                break;
 
+        }
+        //Log.d(LOG_TAG, mText + " onTouchEvent: " + result);
+        //mActivity.writeToFile(mText + " onTouchEvent: " + result + "\n");
+
+        boolean b=super.dispatchTouchEvent(event);
+        Log.d(LOG_TAG, mText + " onTouchEvent RETURNS " + b + "\n");
+        mActivity.writeToFile(mText + " onTouchEvent RETURNS " + b + "\n");
+        return b;
+    }
+*/
     // Only for Touch Framework App
     private TextView mTextView;
-    public void setPointerToTextView(TextView textView){
+
+    public void setPointerToTextView(TextView textView) {
         mTextView = textView;
 
 
     }
 
-    public void setFrontImage(int resId){
+    public void setFrontImage(int resId) {
         mImageFront = getResources().getDrawable(resId);
         setFrontImage(mImageFront);
     }
-    public void setMidImage(int resId){
+
+    public void setMidImage(int resId) {
         mImageMid = getResources().getDrawable(resId);
         setMidImage(mImageMid);
     }
-    public void setBackImage(int resId){
+
+    public void setBackImage(int resId) {
         mImageBack = getResources().getDrawable(resId);
         setBackImage(mImageBack);
     }
@@ -264,12 +322,12 @@ public class CollageView extends View {
             widthImageMid = mImageMid.getIntrinsicWidth();
         int totalFront = 0;
         if (mImageFront != null)
-            totalFront = (int)(FRONT_MOVE_LEFT_BY * widthImageMid
-                        + mImageFront.getIntrinsicWidth());
+            totalFront = (int) (FRONT_MOVE_LEFT_BY * widthImageMid
+                    + mImageFront.getIntrinsicWidth());
         int totalBack = 0;
         if (mImageBack != null)
-            totalBack = (int)(BACK_MOVE_LEFT_BY * widthImageMid
-                        + mImageBack.getIntrinsicWidth());
+            totalBack = (int) (BACK_MOVE_LEFT_BY * widthImageMid
+                    + mImageBack.getIntrinsicWidth());
 
         return Math.max(totalFront, totalBack);
 
@@ -281,11 +339,11 @@ public class CollageView extends View {
             heightImageMid = mImageMid.getIntrinsicHeight();
         int totalFront = 0;
         if (mImageFront != null)
-            totalFront = (int)(FRONT_MOVE_DOWN_BY * heightImageMid
+            totalFront = (int) (FRONT_MOVE_DOWN_BY * heightImageMid
                     + mImageFront.getIntrinsicHeight());
         int totalBack = 0;
         if (mImageBack != null)
-            totalBack = (int)(BACK_MOVE_UP_BY * heightImageMid
+            totalBack = (int) (BACK_MOVE_UP_BY * heightImageMid
                     + mImageBack.getIntrinsicHeight());
 
         return Math.max(totalFront, totalBack);

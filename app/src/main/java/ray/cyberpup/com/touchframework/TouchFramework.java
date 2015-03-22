@@ -3,141 +3,217 @@ package ray.cyberpup.com.touchframework;
 import android.app.Activity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.TextView;
 
 /**
- *
  * Demonstrates how Android's Touch Dispatch framework functions
  * Created on 3/12/15
  *
  * @author Raymond Tong
  */
-public class TouchFramework extends Activity {
+public class TouchFramework extends Activity
+        implements CollageView.Bridge, ViewGroupB.Bridge {
 
-    private static final String LOG_TAG=TouchFramework.class.getSimpleName();
+    private static final String LOG_TAG = TouchFramework.class.getSimpleName();
+
     private static TextView mTextView;
-    private static ListView[] mListViews;
-    private static ArrayAdapter<String>[] mAdapters;
-    private static final int NUMBER_OF_LISTS = 4;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mTextView = (TextView)findViewById(R.id.log_display);
-        mTextView.setTextSize(12);
-
-        // Creates a scrollable text view
+        mTextView = (TextView) findViewById(R.id.log_display);
+        mTextView.setTextSize(10);
         mTextView.setMovementMethod(new ScrollingMovementMethod());
 
-        ViewGroupB group1 =(ViewGroupB)findViewById(R.id.group1);
-       group1.setPointerToTextView(mTextView);
+        ViewGroupB group1 = (ViewGroupB) findViewById(R.id.group1);
+        group1.setPointerToTextView(mTextView);
+        group1.setBridge(this);
 
-        ViewGroupB group2 =(ViewGroupB)findViewById(R.id.group2);
+        ViewGroupB group2 = (ViewGroupB) findViewById(R.id.group2);
         group2.setPointerToTextView(mTextView);
-
-        CollageView view = (CollageView)findViewById(R.id.collage);
-        view.setPointerToTextView(mTextView);
+        group2.setBridge(this);
 
 
+        CollageView view_consume_event = (CollageView) findViewById(R.id.collage1);
+        view_consume_event.setPointerToTextView(mTextView);
+        view_consume_event.setBridge(this);
+
+        CollageView view_ignore_event = (CollageView) findViewById(R.id.collage2);
+        view_ignore_event.setPointerToTextView(mTextView);
+        view_ignore_event.setBridge(this);
 
 
-/*
-        // Initialize array
-        mListViews = new ListView[NUMBER_OF_LISTS];
-        mAdapters = new ArrayAdapter[mListViews.length];
+        view_consume_event.setOnClickListener(new View.OnClickListener() {
 
-
-        // List View
-        Resources res = getResources();
-        String[]list1 = res.getStringArray(R.array.listofcharacters);
-        String[]list2 = res.getStringArray(R.array.listofthings);
-        String[]list3 = res.getStringArray(R.array.listoffoods);
-        String[]list4 = res.getStringArray(R.array.listofnames);
-
-        String[][] lists = {list1, list2, list3, list4};
-
-        mListViews[0] = (ListView)findViewById(R.id.list1);
-        mListViews[1] = (ListView)findViewById(R.id.list2);
-        mListViews[2] = (ListView)findViewById(R.id.list3);
-        mListViews[3] = (ListView)findViewById(R.id.list4);
-
-        // Using a custom row item for the list view
-        // If a standard android view is needed
-        // use android.R.layout.simple_list_item_1 instead
-
-        int i=0;
-        for(String[] list:lists) {
-            mAdapters[i] = new ArrayAdapter<String>(this,
-                    R.layout.row_item,
-                    R.id.rowTextView,
-                    list);
-            mListViews[i].setAdapter(mAdapters[i++]);
-
-        }
-        */
-        // Display Results
-        //textView = (TextView)findViewById(R.id.textView);
-        //textView.setTextSize(12);
-
-        // Pass TextView over to ViewGroupB so ViewGroupB can display
-        // touch events
-        //ViewGroupB viewGroupA = (ViewGroupB)findViewById(R.id.my_viewgroup_a);
-        //viewGroupA.setPointerToTextView(textView);
-
+            @Override
+            public void onClick(View v) {
+                //mTextView.append("PRINT FROM FILE TO DISPLAY...");
+                printToDisplay();
+            }
+        });
 
     }
 
-    /*
+    private void printToDisplay() {
+
+        // mTextView.setText()
+        Log.d(LOG_TAG, "printing to display...");
+        clearFile();
+
+    }
+
+    private void clearFile() {
+        // clear file logic
+        Log.d(LOG_TAG, "clearing external file...");
+        mStopWriteToFile =true;
+        Log.d(LOG_TAG, "Write to File stopped.");
+    }
+
+    void writeToFile(String log) {
+        // write log to file
+        Log.d(LOG_TAG, "writing to file...");
+    }
+
+    private static boolean mFirstPass = true;
+
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-        // getAction returns both pointer and the event
-        // getActionMasked "masks out the pointer info and returns only the event
-        switch(event.getActionMasked()){
-            case MotionEvent.ACTION_DOWN:
-                textView.append("Activity dispatchTouchEvent DOWN\n");
-                break;
-            case MotionEvent.ACTION_MOVE:
-                textView.append("Activity dispatchTouchEvent MOVE\n");
-                break;
-            case MotionEvent.ACTION_UP:
-                textView.append("Activity dispatchTouchEvent UP\n");
-                break;
-            case MotionEvent.ACTION_CANCEL:
-                textView.append("Activity dispatchTouchEvent CANCEL\n");
-                break;
+
+        if (!(mTypeTouched == ViewType.INACTIVE)
+                || mFirstPass) {
+            Log.d(LOG_TAG, "mTypeTouched = " + mTypeTouched);
+            mFirstPass = false;
+
+            String result = "";
+            // getAction returns both pointer and the event
+            // getActionMasked "masks out the pointer info and returns only the event
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    result = "DOWN";
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    result = "MOVE";
+                    break;
+                case MotionEvent.ACTION_UP:
+                    result = "UP";
+                    break;
+                case MotionEvent.ACTION_POINTER_UP:
+                    result = "POINTER UP";
+                    break;
+                case MotionEvent.ACTION_POINTER_DOWN:
+                    result = "POINTER DOWN";
+                    break;
+                case MotionEvent.ACTION_CANCEL:
+                    result = "CANCEL";
+                    break;
+            }
+            Log.d(LOG_TAG, "Activity dispatchTouchEvent: " + result);
+            if(!mStopWriteToFile)
+                writeToFile("Activity dispatchTouchEvent: " + result + "\n");
 
         }
-        boolean b=super.dispatchTouchEvent(event);
-        textView.append("Activity dispatchTouchEvent RETURNS " + b + "\n");
+
+        boolean b = super.dispatchTouchEvent(event);
+        Log.d(LOG_TAG, "Activity dispatchTouchEvent RETURNS: " + b + "\n");
+        if(!mStopWriteToFile)
+            writeToFile("Activity dispatchTouchEvent RETURNS: " + b + "\n");
         return b;
 
     }
-
+    boolean mStopWriteToFile = false;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        switch(event.getActionMasked()){
+
+        String result = "";
+
+        switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                textView.append("Activity dispatchTouchEvent UP\n");
+                //mTextView.append("Activity onTouchEvent DOWN\n");
+                result = "DOWN";
                 break;
             case MotionEvent.ACTION_MOVE:
-                textView.append("Activity onTouchEvent DOWN\n");
+                //mTextView.append("Activity onTouchEvent MOVE\n");
+                result = "MOVE";
                 break;
+
+            // Event was either consumed or not
             case MotionEvent.ACTION_UP:
-                textView.append("Activity onTouchEvent UP\n");
+                //mTextView.append("Activity onTouchEvent UP\n");
+                result = "UP";
+                // Event was not consumed, end of touch process
+                if (mTypeTouched==ViewType.VIEWGROUP){
+                    Log.d(LOG_TAG, "VIEW GROUP touched.");
+                    printToDisplay();
+
+                    // Must writeToFile here, otherwise, it won't capture
+                    // TouchEvent Up
+
+                }
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+                //mTextView.append("Activity onTouchEvent POINTER UP\n");
+                result = "POINTER UP";
+                break;
+            case MotionEvent.ACTION_POINTER_DOWN:
+                //mTextView.append("Activity onTouchEvent POINTER DOWN\n");
+                result = "POINTER DOWN";
                 break;
             case MotionEvent.ACTION_CANCEL:
-                textView.append("Activity onTouchEvent CANCEL\n");
+                //mTextView.append("Activity onTouchEvent CANCEL\n");
+                result = "CANCEL";
                 break;
 
         }
-        boolean b=super.onTouchEvent(event);
-        Log.d(LOG_TAG, "Activity onTouchEvent RETURNS "+b);
-        textView.append("Activity onTouchEvent RETURNS " + b + "\n");
+
+        // Remove
+        Log.d(LOG_TAG, "Activity onTouchEvent: " + result);
+        if(!mStopWriteToFile)
+            writeToFile("Activity onTouchEvent: " + result + "\n");
+
+        boolean b = super.onTouchEvent(event);
+        Log.d(LOG_TAG, "Activity onTouchEvent RETURNS: " + b + "\n");
+        if(!mStopWriteToFile)
+            writeToFile("Activity onTouchEvent RETURNS: " + b + "\n");
+
         return b;
     }
-*/
+
+    private enum ViewType {
+
+        INACTIVE,
+        VIEWGROUP,
+        VIEW
+
+    }
+
+    private static ViewType mTypeTouched = ViewType.INACTIVE;
+
+    /**
+     * Tells TouchFramework what was touched to help prevent
+     * Activity dispatchTouchEvent or onTouchEvents from writing to
+     * the display
+     *
+     * @param type
+     * @return integer equivalent type
+     */
+    @Override
+    public void setViewType(View type) {
+
+        if (type instanceof ViewGroupB) {
+            mTypeTouched = ViewType.VIEWGROUP;
+        }
+
+        if (type instanceof CollageView) {
+            mTypeTouched = ViewType.VIEW;
+        }
+
+    }
+/*/*/
 
 }
