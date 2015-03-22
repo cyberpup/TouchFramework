@@ -7,7 +7,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
@@ -144,16 +143,15 @@ public class CollageView extends View {
         }
         //Log.d(LOG_TAG, mText + " dispatchTouchEvent: " + result);
         mActivity.writeToFile(mText + " dispatchTouchEvent: " + result + "\n");
-
         boolean b=super.dispatchTouchEvent(event);
-        Log.d(LOG_TAG, mText + " dispatchTouchEvent RETURNS " + b + "\n");
+        //Log.d(LOG_TAG, mText + " dispatchTouchEvent RETURNS " + b + "\n");
         mActivity.writeToFile(mText + " dispatchTouchEvent RETURNS " + b + "\n");
         return b;
     }
-/*
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        mTextView.setTextColor(mColor);
+
         String result = "";
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
@@ -171,14 +169,14 @@ public class CollageView extends View {
 
         }
         //Log.d(LOG_TAG, mText + " onTouchEvent: " + result);
-        //mActivity.writeToFile(mText + " onTouchEvent: " + result + "\n");
+        mActivity.writeToFile(mText + " onTouchEvent: " + result + "\n");
 
-        boolean b=super.dispatchTouchEvent(event);
-        Log.d(LOG_TAG, mText + " onTouchEvent RETURNS " + b + "\n");
+        boolean b=super.onTouchEvent(event);
+        //Log.d(LOG_TAG, mText + " onTouchEvent RETURNS " + b + "\n");
         mActivity.writeToFile(mText + " onTouchEvent RETURNS " + b + "\n");
         return b;
     }
-*/
+/**/
     // Only for Touch Framework App
     private TextView mTextView;
 

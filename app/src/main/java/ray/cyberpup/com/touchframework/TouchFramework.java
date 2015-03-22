@@ -62,34 +62,40 @@ public class TouchFramework extends Activity
 
     private void printToDisplay() {
 
-        // mTextView.setText()
+        // Clear the screen
+        mTextView.setText("");
+
+        // Write to Screen
         Log.d(LOG_TAG, "printing to display...");
+
         clearFile();
 
     }
 
     private void clearFile() {
         // clear file logic
+
         Log.d(LOG_TAG, "clearing external file...");
-        mStopWriteToFile =true;
+        mWriteToFile =true;
+        mTypeTouched = ViewType.STARTUP;
         Log.d(LOG_TAG, "Write to File stopped.");
     }
 
     void writeToFile(String log) {
         // write log to file
-        Log.d(LOG_TAG, "writing to file...");
+        Log.d(LOG_TAG, "WTF: "+log);
     }
 
-    private static boolean mFirstPass = true;
 
+    boolean mEnd=false;
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
 
-        if (!(mTypeTouched == ViewType.INACTIVE)
-                || mFirstPass) {
-            Log.d(LOG_TAG, "mTypeTouched = " + mTypeTouched);
-            mFirstPass = false;
 
+        Log.d(LOG_TAG, "mTypeTouched = " + mTypeTouched);
+        boolean b;
+        if(mTypeTouched!=ViewType.INACTIVE){
+            //mWriteToFile = true;
             String result = "";
             // getAction returns both pointer and the event
             // getActionMasked "masks out the pointer info and returns only the event
@@ -113,25 +119,32 @@ public class TouchFramework extends Activity
                     result = "CANCEL";
                     break;
             }
-            Log.d(LOG_TAG, "Activity dispatchTouchEvent: " + result);
-            if(!mStopWriteToFile)
-                writeToFile("Activity dispatchTouchEvent: " + result + "\n");
+            //Log.d(LOG_TAG, "Activity dispatchTouchEvent: " + result);
+            //if(mWriteToFile)
+            //   writeToFile("Activity dispatchTouchEvent: " + result + "\n");
 
-        }
+            b= super.dispatchTouchEvent(event);
+            //Log.d(LOG_TAG, "Activity dispatchTouchEvent RETURNS: " + b + "\n");
 
-        boolean b = super.dispatchTouchEvent(event);
-        Log.d(LOG_TAG, "Activity dispatchTouchEvent RETURNS: " + b + "\n");
-        if(!mStopWriteToFile)
+
+            writeToFile("Activity dispatchTouchEvent: " + result + "\n");
             writeToFile("Activity dispatchTouchEvent RETURNS: " + b + "\n");
+            if (!mWriteToFile) {
+                printToDisplay();
+            }
+
+        } else{
+            b = super.dispatchTouchEvent(event);
+        }
         return b;
 
     }
-    boolean mStopWriteToFile = false;
+    boolean mWriteToFile = true;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
         String result = "";
-
+        boolean b=false;
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 //mTextView.append("Activity onTouchEvent DOWN\n");
@@ -147,13 +160,14 @@ public class TouchFramework extends Activity
                 //mTextView.append("Activity onTouchEvent UP\n");
                 result = "UP";
                 // Event was not consumed, end of touch process
-                if (mTypeTouched==ViewType.VIEWGROUP){
-                    Log.d(LOG_TAG, "VIEW GROUP touched.");
-                    printToDisplay();
+                b = super.onTouchEvent(event);
+                if (mTypeTouched==ViewType.VIEWGROUP ||
+                        (mTypeTouched==ViewType.VIEW && b==false)){
+                    writeToFile("Activity onTouchEvent: " + result + "\n");
+                    b = super.onTouchEvent(event);
 
-                    // Must writeToFile here, otherwise, it won't capture
-                    // TouchEvent Up
-
+                    writeToFile("Activity onTouchEvent RETURNS: " + b + "\n");
+                    mWriteToFile=false;
                 }
                 break;
             case MotionEvent.ACTION_POINTER_UP:
@@ -172,27 +186,32 @@ public class TouchFramework extends Activity
         }
 
         // Remove
-        Log.d(LOG_TAG, "Activity onTouchEvent: " + result);
-        if(!mStopWriteToFile)
+        //Log.d(LOG_TAG, "Activity onTouchEvent: " + result);
+        if(mWriteToFile)
             writeToFile("Activity onTouchEvent: " + result + "\n");
 
-        boolean b = super.onTouchEvent(event);
-        Log.d(LOG_TAG, "Activity onTouchEvent RETURNS: " + b + "\n");
-        if(!mStopWriteToFile)
+
+        //Log.d(LOG_TAG, "Activity onTouchEvent RETURNS: " + b + "\n");
+        if(mWriteToFile){
+            b = super.onTouchEvent(event);
+
             writeToFile("Activity onTouchEvent RETURNS: " + b + "\n");
 
+        }
         return b;
+
     }
 
     private enum ViewType {
 
         INACTIVE,
         VIEWGROUP,
-        VIEW
+        VIEW,
+        STARTUP
 
     }
 
-    private static ViewType mTypeTouched = ViewType.INACTIVE;
+    private static ViewType mTypeTouched = ViewType.STARTUP;
 
     /**
      * Tells TouchFramework what was touched to help prevent
