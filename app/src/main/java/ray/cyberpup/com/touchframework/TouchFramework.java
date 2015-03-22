@@ -1,12 +1,16 @@
 package ray.cyberpup.com.touchframework;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
+
+import java.io.File;
 
 /**
  * Demonstrates how Android's Touch Dispatch framework functions
@@ -33,6 +37,42 @@ public class TouchFramework extends Activity
 
     private static TextView mTextView;
 
+    private static File mAppDataFile;
+
+    private boolean isExternalStorageWritable(){
+
+        String state = Environment.getExternalStorageState();
+        if(Environment.MEDIA_MOUNTED.equals(state)){
+            return true;
+        }
+        return false;
+
+    }
+    private void initStorage(){
+
+        // if External storage is available
+        if (isExternalStorageWritable()){
+            mAppDataFile = getFileStorageDir(this, "tempspace");
+            Log.d(LOG_TAG, "cool! file is at " + mAppDataFile.getAbsolutePath());
+        }else{
+            Log.d(LOG_TAG, "boo! only internal available");
+        }
+
+        // if External storage is not available
+    }
+
+    private File getFileStorageDir(Context context, String fileName){
+        Log.d(LOG_TAG, "sdcard @ "+Environment.getExternalStorageDirectory());
+        Log.d(LOG_TAG, "top-level public external storage is " +
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS));
+        File file = new File(context.getExternalFilesDir(
+                Environment.DIRECTORY_DOCUMENTS), fileName);
+        if(!file.mkdirs()){
+            Log.e(LOG_TAG, "Directory/File not created");
+        }else
+            Log.d(LOG_TAG, "Directory/File created!");
+        return file;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +110,8 @@ public class TouchFramework extends Activity
             }
         });
 
+        initStorage();
+
     }
 
     private void printToDisplay() {
@@ -78,7 +120,7 @@ public class TouchFramework extends Activity
         mTextView.setText("");
 
         // Write to Screen
-        Log.d(LOG_TAG, "printing to display...");
+        //Log.d(LOG_TAG, "printing to display...");
 
         clearFile();
 
@@ -87,15 +129,20 @@ public class TouchFramework extends Activity
     private void clearFile() {
         // clear file logic
 
-        Log.d(LOG_TAG, "clearing external file...");
+        if(mAppDataFile.delete()) {
+            Log.d(LOG_TAG, "File deleted.");
+            mAppDataFile = getFileStorageDir(this, "tempspace");
+        }
+
+        //Log.d(LOG_TAG, "clearing external file...");
         mWriteToFile =true;
         mTypeTouched = ViewType.INACTIVE;
-        Log.d(LOG_TAG, "Write to File stopped.");
+        //Log.d(LOG_TAG, "Write to File stopped.");
     }
 
     void writeToFile(String log) {
         // write log to file
-        Log.d(LOG_TAG, "WTF: "+log);
+        //Log.d(LOG_TAG, "WTF: "+log);
     }
 
     @Override
@@ -223,7 +270,7 @@ public class TouchFramework extends Activity
         INACTIVE,
         VIEWGROUP,
         VIEW,
-        STARTUP
+        STARTUP //Compensates for lack of view object for first event dispatch
 
     }
 
@@ -232,7 +279,7 @@ public class TouchFramework extends Activity
     /**
      * Tells TouchFramework what was touched to help prevent
      * Activity dispatchTouchEvent or onTouchEvents from writing to
-     * the display
+     * the display if you touch anything other than a designated viewgroup or view.
      *
      * @param type
      * @return integer equivalent type
