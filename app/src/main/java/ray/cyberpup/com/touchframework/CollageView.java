@@ -151,7 +151,7 @@ public class CollageView extends View {
         mActivity.writeToFile(mText + " dispatchTouchEvent: " + result + "\n");
         boolean b=super.dispatchTouchEvent(event);
         //Log.d(LOG_TAG, mText + " dispatchTouchEvent RETURNS " + b + "\n");
-        mActivity.writeToFile(mText + " dispatchTouchEvent RETURNS " + b + "\n");
+        mActivity.writeToFile(mText + " dispatchTouchEvent returns " + b + "\n");
         return b;
     }
 
@@ -179,7 +179,7 @@ public class CollageView extends View {
 
         boolean b=super.onTouchEvent(event);
         //Log.d(LOG_TAG, mText + " onTouchEvent RETURNS " + b + "\n");
-        mActivity.writeToFile(mText + " onTouchEvent RETURNS " + b + "\n");
+        mActivity.writeToFile(mText + " onTouchEvent returns " + b + "\n");
         return b;
     }
 /**/

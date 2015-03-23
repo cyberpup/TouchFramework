@@ -16,18 +16,18 @@ import java.io.BufferedReader;
 import java.io.File;
 
 /**
- * Demonstrates how Android's Touch Dispatch framework functions
+ * Demonstrates how Android's Touch Event Handling Pipeline functions
  *
  * NOTE:
  * This may not be very visually impressive but it was quite a challenge
- * for me to write, as one needs to understand how the touch
- * dispatch framework functions to code this properly. It is not enough to merely
- * add append statements to the TextView during touch framework calls to
- * display the properly call sequence.
+ * for me to write, as one needs to understand how the motion event handling
+ * pipeline functions first before coding this. It is not enough to merely
+ * add append statements to various methods called within the touch framework
+ * to properly display the call sequence involved.
  *
- * Also, I've left out calls to DecorView as I wanted to display text from
- * within the framework. Since I don't know of a way to override the calls from
- * the DecorView or ViewRoot, I left those calls out.
+ * The activity calls the DecorView/ViewRoot/Window which in turns dispatches events
+ * to its children. I've left out calls from the DecorView as I don't know of a
+ * way to override it's methods.
  *
  * Created on 3/12/15
  *
@@ -83,7 +83,7 @@ public class TouchFramework extends Activity
         setContentView(R.layout.activity_main);
 
         mTextView = (TextView) findViewById(R.id.log_display);
-        mTextView.setTextSize(10);
+        mTextView.setTextSize(11);
         mTextView.setMovementMethod(new ScrollingMovementMethod());
 
         ViewGroupB group1 = (ViewGroupB) findViewById(R.id.group1);
@@ -253,7 +253,7 @@ public class TouchFramework extends Activity
             writeToFile("Activity dispatchTouchEvent: " + result + "\n");
             b = super.dispatchTouchEvent(event);
             if(mWriteToFile || mLastWriteBeforeStop)
-            writeToFile("Activity dispatchTouchEvent RETURNS: " + b + "\n");
+            writeToFile("Activity dispatchTouchEvent returns: " + b + "\n");
 
             if (!mWriteToFile) {
                 printToDisplay();
@@ -302,7 +302,7 @@ public class TouchFramework extends Activity
                         writeToFile("Activity onTouchEvent: " + result + "\n");
                         //b = super.onTouchEvent(event);
 
-                        writeToFile("Activity onTouchEvent RETURNS: " + b + "\n");
+                        writeToFile("Activity onTouchEvent returns: " + b + "\n");
                         mWriteToFile=false;
                         mLastWriteBeforeStop=true;
                     }
@@ -333,7 +333,7 @@ public class TouchFramework extends Activity
             if(mWriteToFile){
                 b = super.onTouchEvent(event);
 
-                writeToFile("Activity onTouchEvent RETURNS: " + b + "\n");
+                writeToFile("Activity onTouchEvent returns: " + b + "\n");
 
             }
             return b;

@@ -92,7 +92,7 @@ public class ViewGroupB extends ViewGroup {
             }
 
         }
-        Log.d(LOG_TAG, "# of lines drawn: "+count);
+        //Log.d(LOG_TAG, "# of lines drawn: "+count);
 
         if (mText!=null){
 
@@ -200,7 +200,7 @@ public class ViewGroupB extends ViewGroup {
 
         boolean b=super.dispatchTouchEvent(event);
         //Log.d(LOG_TAG, mText + " dispatchTouchEvent RETURNS " + b + "\n");
-        mActivity.writeToFile(mText + " dispatchTouchEvent RETURNS " + b + "\n");
+        mActivity.writeToFile(mText + " dispatchTouchEvent returns " + b + "\n");
         return b;
     }
 
@@ -228,7 +228,7 @@ public class ViewGroupB extends ViewGroup {
 
         boolean b=super.onTouchEvent(event);
         //Log.d(LOG_TAG, mText + " onTouchEvent RETURNS: " + b + "\n");
-        mActivity.writeToFile(mText + " onTouchEvent RETURNS: " + b + "\n");
+        mActivity.writeToFile(mText + " onTouchEvent returns " + b + "\n");
         return b;
     }
 
@@ -251,11 +251,11 @@ public class ViewGroupB extends ViewGroup {
                 break;
         }
 
-        Log.d(LOG_TAG, mText + " onInterceptTouchEvent: " + result);
+        //Log.d(LOG_TAG, mText + " onInterceptTouchEvent: " + result);
         mActivity.writeToFile(mText + " onInterceptTouchEvent: " + result + "\n");
 
         boolean b=super.onInterceptTouchEvent(event);
-        mActivity.writeToFile(mText + " onInterceptTouchEvent RETURNS: " + b + "\n");
+        mActivity.writeToFile(mText + " onInterceptTouchEvent returns " + b + "\n");
         return b;
     }
 

@@ -13,8 +13,7 @@
         android:scrollbars="vertical"
         android:background="#000000"
         android:text="@string/init_msg"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"/>
+        android:textColor="#FFFFFF"/>
 
     <ray.cyberpup.com.touchframework.ViewGroupB
         android:id="@+id/group1"

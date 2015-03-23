@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.TextView;
 
 /**
+ * Written specifically for the TouchFramework app
  * Created on 3/23/15
  *
  * @author Raymond Tong
@@ -82,6 +83,12 @@ public class CustomTextView extends TextView {
             case MotionEvent.ACTION_UP:
                 result = "UP";
                 break;
+            case MotionEvent.ACTION_POINTER_UP:
+                result = "POINTER UP";
+                break;
+            case MotionEvent.ACTION_POINTER_DOWN:
+                result = "POINTER DOWN";
+                break;
             case MotionEvent.ACTION_CANCEL:
                 result = "CANCEL";
                 break;
@@ -90,7 +97,7 @@ public class CustomTextView extends TextView {
         mActivity.writeToFile(mText + " dispatchTouchEvent: " + result + "\n");
         boolean b=super.dispatchTouchEvent(event);
         //Log.d(LOG_TAG, mText + " dispatchTouchEvent RETURNS " + b + "\n");
-        mActivity.writeToFile(mText + " dispatchTouchEvent RETURNS " + b + "\n");
+        mActivity.writeToFile(mText + " dispatchTouchEvent returns " + b + "\n");
         return b;
     }
 
@@ -108,6 +115,12 @@ public class CustomTextView extends TextView {
             case MotionEvent.ACTION_UP:
                 result = "UP";
                 break;
+            case MotionEvent.ACTION_POINTER_UP:
+                result = "POINTER UP";
+                break;
+            case MotionEvent.ACTION_POINTER_DOWN:
+                result = "POINTER DOWN";
+                break;
             case MotionEvent.ACTION_CANCEL:
                 result = "CANCEL";
                 break;
@@ -118,7 +131,7 @@ public class CustomTextView extends TextView {
 
         boolean b=super.onTouchEvent(event);
         //Log.d(LOG_TAG, mText + " onTouchEvent RETURNS " + b + "\n");
-        mActivity.writeToFile(mText + " onTouchEvent RETURNS " + b + "\n");
+        mActivity.writeToFile(mText + " onTouchEvent returns " + b + "\n");
         return b;
     }
 
