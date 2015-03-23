@@ -23,7 +23,7 @@
         android:layout_below="@id/log_display"
         android:background="#ff9bd7ff"
         viewgroup:touch_color="#FF9BD7FF"
-        android:text="View Group 1"
+        android:text="ViewGroup 1"
         viewgroup:lines="false">
 
         <ray.cyberpup.com.touchframework.ViewGroupB
@@ -31,35 +31,25 @@
             android:layout_width="wrap_content"
             android:layout_height="220dp"
             android:layout_below="@id/log_display"
-            android:text="View Group 2"
+            android:text="ViewGroup 2"
             android:background="#fffff172"
             viewgroup:touch_color="#fffff172"
             viewgroup:lines="false">
 
-            <ray.cyberpup.com.touchframework.CollageView
-            android:id="@+id/collage1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            collage:image_back="@drawable/yellowchevy"
-            collage:image_front="@drawable/vw"
-            collage:image_mid="@drawable/minicar"
-            android:text="Capture Event"
-            android:textColor="#FF0000"
-            android:layout_marginLeft="0dp"
-            android:layout_marginRight="0dp"
-            android:background="#000000"/>
+                <ray.cyberpup.com.touchframework.CustomTextView
+                    android:id="@+id/consume_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="View A"
+                    android:background="#ff00f71d"/>
 
-            <ray.cyberpup.com.touchframework.CollageView
-                android:id="@+id/collage2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                collage:image_back="@drawable/yellowchevy"
-                collage:image_front="@drawable/vw"
-                collage:image_mid="@drawable/minicar"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                android:text="Ignore Event"
-                android:background="#00FFFF"/>
+                <ray.cyberpup.com.touchframework.CustomTextView
+                    android:id="@+id/ignore_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="View B"
+                    android:background="#FFFFFF"/>
+
 
         </ray.cyberpup.com.touchframework.ViewGroupB>
 

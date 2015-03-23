@@ -22,6 +22,12 @@
     </declare-styleable>
 
 
+    <declare-styleable name="CustomTextView">
+        <attr name="android:background"/>
+        <attr name="android:text"/>
+    </declare-styleable>
+
+
     <declare-styleable name = "Collage">
 
         <attr name="image_front" format="integer"/>
@@ -32,5 +38,9 @@
         <attr name="android:textColor" />
         <attr name="android:spacing" />
     </declare-styleable>
+
+
+
+
 
 </resources>

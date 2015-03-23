@@ -38,7 +38,7 @@ public class ViewGroupB extends ViewGroup {
     private TouchFramework mActivity;
     // Interface to communicate back to Activity that this view was clicked
     protected interface Bridge{
-        public void setViewType(View type);
+        public void setViewType(View type, int color);
     }
 
     public void setBridge(Activity activity){
@@ -123,18 +123,20 @@ public class ViewGroupB extends ViewGroup {
         if (count == 2){
             View child1 = getChildAt(0);
             left = 0;
-            top = getHeight()/2 - child1.getMeasuredHeight()/2;
+            top = getHeight()/4;
+            int bottom = getHeight()*3/4;
+
             child1.layout(left,
                     top,
-                    left + child1.getMeasuredWidth(),
-                    top + child1.getMeasuredHeight());
+                    getWidth()/2,
+                    bottom);
 
             View child2 = getChildAt(1);
-            left = left + child1.getMeasuredWidth();
-            child2.layout(left,
-                        top,
-                        left+child2.getMeasuredWidth(),
-                    top + child2.getMeasuredHeight());
+
+            child2.layout(getWidth()/2,
+                    top,
+                    getWidth(),
+                    bottom);
 
         }
     }
@@ -171,7 +173,7 @@ public class ViewGroupB extends ViewGroup {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-        mActivity.setViewType(this);
+        mActivity.setViewType(this,0);
         String result="";
         mTextView.setTextColor(mTouchColor);
         //mTextView.setText("");

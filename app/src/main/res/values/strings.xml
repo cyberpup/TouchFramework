@@ -80,6 +80,6 @@
     <string name="Q1">View A</string>
     <string name="Q2">View B</string>
     <string name="Q3">View C</string>
-    <string name="init_msg">Log Events will be displayed here. Press either one of the view groups or views to see how Android handles touch events.</string>
+    <string name="init_msg">Log Events displayed here.\nPress either one of the view groups or views to see how Android handles touch events.</string>
 
 </resources>

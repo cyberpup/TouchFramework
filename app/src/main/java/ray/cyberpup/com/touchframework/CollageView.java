@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -39,7 +40,7 @@ public class CollageView extends View {
 
     // Interface to communicate back to Activity that this view was clicked
     protected interface Bridge {
-        public void setViewType(View type);
+        public void setViewType(View type, int color);
     }
 
     public void setBridge(Activity activity) {
@@ -85,6 +86,11 @@ public class CollageView extends View {
         // Always call this to release TypedArray and don't
         a.recycle();
 
+
+
+
+
+
         // Uncomment to release painting feature
         // paintInit();
     }
@@ -120,10 +126,10 @@ public class CollageView extends View {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-        mActivity.setViewType(this);
+        mActivity.setViewType(this, mColor);
         mTextView.setTextColor(mColor);
         String result = "";
-        // mTextView.setText("");
+
         // getAction returns both pointer and the event
         // getActionMasked "masks out the pointer info and returns only the event
         switch (event.getActionMasked()) {
@@ -348,6 +354,11 @@ public class CollageView extends View {
     }
 
 
+
+    Paint mTextPaint;
+
+
+
     @Override
     protected void onDraw(Canvas canvas) {
 
@@ -360,5 +371,6 @@ public class CollageView extends View {
         if (mImageFront != null) {
             mImageFront.draw(canvas);
         }
+
     }
 }
