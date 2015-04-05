@@ -5,9 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <include
+        android:id="@+id/app_bar"
+        layout="@layout/app_bar" />
+
 
     <TextView
         android:id="@+id/log_display"
+        android:layout_below="@id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:scrollbars="vertical"
@@ -15,7 +20,7 @@
         android:text="@string/init_msg"
         android:textColor="#FFFFFF"/>
 
-    <ray.cyberpup.com.touchframework.ViewGroupB
+    <ray.cyberpup.com.touchframework.ViewGroup1
         android:id="@+id/group1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -52,7 +57,7 @@
 
         </ray.cyberpup.com.touchframework.ViewGroupB>
 
-    </ray.cyberpup.com.touchframework.ViewGroupB>
+    </ray.cyberpup.com.touchframework.ViewGroup1>
 
 
 </RelativeLayout>

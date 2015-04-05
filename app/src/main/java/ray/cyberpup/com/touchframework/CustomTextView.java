@@ -93,16 +93,19 @@ public class CustomTextView extends TextView {
                 result = "CANCEL";
                 break;
         }
+        boolean b=super.dispatchTouchEvent(event);
         //Log.d(LOG_TAG, mText + " dispatchTouchEvent: " + result);
         mActivity.writeToFile(mText + " dispatchTouchEvent: " + result + "\n");
-        boolean b=super.dispatchTouchEvent(event);
+
         //Log.d(LOG_TAG, mText + " dispatchTouchEvent RETURNS " + b + "\n");
         mActivity.writeToFile(mText + " dispatchTouchEvent returns " + b + "\n");
         return b;
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
+     public boolean onTouchEvent(MotionEvent event) {
+
+        //getParent().requestDisallowInterceptTouchEvent(true);
 
         String result = "";
         switch (event.getActionMasked()) {
@@ -126,10 +129,11 @@ public class CustomTextView extends TextView {
                 break;
 
         }
+        boolean b=super.onTouchEvent(event);
         //Log.d(LOG_TAG, mText + " onTouchEvent: " + result);
         mActivity.writeToFile(mText + " onTouchEvent: " + result + "\n");
 
-        boolean b=super.onTouchEvent(event);
+
         //Log.d(LOG_TAG, mText + " onTouchEvent RETURNS " + b + "\n");
         mActivity.writeToFile(mText + " onTouchEvent returns " + b + "\n");
         return b;

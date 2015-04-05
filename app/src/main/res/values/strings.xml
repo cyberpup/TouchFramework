@@ -82,4 +82,8 @@
     <string name="Q3">View C</string>
     <string name="init_msg">"Log Events are displayed here.\nTouch any one of the colored regions to see how the Android's touch event handling pipeline works."</string>
 
+    <string name="viewgroup1">ViewGroup1</string>
+    <string name="viewgroup2">ViewGroup2</string>
+    <string name="view">View</string>
+
 </resources>

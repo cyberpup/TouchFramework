@@ -1,0 +1,19 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="ray.cyberpup.com.portfolio.MainActivity">
+
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"
+        android:title="Action Settings"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/preferences"
+        android:orderInCategory="100"
+        android:icon="@mipmap/ic_action_help"
+        android:title="preferences"
+
+        app:showAsAction="always" />
+
+</menu>

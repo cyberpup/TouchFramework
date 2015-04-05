@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#FFFFFF</color>
+    <color name="primaryColor">#2196F3</color>
+    <color name="primaryColorDark">#1976D2</color>
+    <color name="colorAccent">#ffff31ee</color>
+    <color name="navigationColor">#FFFFFF</color>
+    <color name="overlayColor">@color/primaryColor</color>
+
+
+</resources>

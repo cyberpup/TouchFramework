@@ -1,12 +1,16 @@
 package ray.cyberpup.com.touchframework;
 
-import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Scroller;
@@ -17,24 +21,34 @@ import java.io.File;
 
 /**
  * Demonstrates how Android's Touch Event Handling Pipeline functions
- *
+ * <p/>
  * NOTE:
  * This may not be very visually impressive but it was quite a challenge
  * for me to write, as one needs to understand how the motion event handling
  * pipeline functions first before coding this. It is not enough to merely
  * add append statements to various methods called within the touch framework
  * to properly display the call sequence involved.
- *
- * The activity calls the DecorView/ViewRoot/Window which in turns dispatches events
- * to its children. I've left out calls from the DecorView as I don't know of a
- * way to override it's methods.
- *
+ * <p/>
+ * The activity calls the DecorView which is private final located in PhoneWindow.java
+ * which extends Window (i.e. base class for top-level window). I've left out calls from the DecorView as I don't know of a
+ * way to override it's method which turns out to be impossible as it's set
+ * to private final.
+ * <p/>
+ * Also what's not displayed is the View.OnClickListener's onTouch() which can't
+ * be overriden either. If a view has a clickListener attached to it, the listener's onTouch() will
+ * get an opportunity to intercept the event before onTouchEvent()
+ * <p/>
+ * Although onInterceptTouchEvent() calls are displayed, none of the viewgroups
+ * intercept the event so, that particular handling pipeline (i.e.
+ * onInterceptTouchEvent() --> onTouchEvent() --> Activity) never gets displayed.
+ * Perhaps I will add it in future revisions.
+ * <p/>
  * Created on 3/12/15
  *
  * @author Raymond Tong
  */
-public class TouchFramework extends Activity
-        implements CollageView.Bridge, ViewGroupB.Bridge {
+public class TouchFramework extends ActionBarActivity
+        implements CollageView.Bridge, ViewGroupB.Bridge, InterceptsDialog.InterceptsDialogListener {
 
     private static final String LOG_TAG = TouchFramework.class.getSimpleName();
 
@@ -42,37 +56,40 @@ public class TouchFramework extends Activity
 
     private static File mAppDataFile;
 
-    private boolean isExternalStorageWritable(){
+    private Toolbar toolbar;
+
+    private boolean isExternalStorageWritable() {
 
         String state = Environment.getExternalStorageState();
-        if(Environment.MEDIA_MOUNTED.equals(state)){
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
             return true;
         }
         return false;
 
     }
-    private void initStorage(){
+
+    private void initStorage() {
 
         // if External storage is available
-        if (isExternalStorageWritable()){
+        if (isExternalStorageWritable()) {
             mAppDataFile = getFileStorageDir(this, "cyberpup");
             Log.d(LOG_TAG, "cool! folder is at " + mAppDataFile.getAbsolutePath());
-        }else{
+        } else {
             Log.d(LOG_TAG, "boo! only internal available");
         }
 
         // if External storage is not available
     }
 
-    private File getFileStorageDir(Context context, String fileName){
-        Log.d(LOG_TAG, "sdcard @ "+Environment.getExternalStorageDirectory());
+    private File getFileStorageDir(Context context, String fileName) {
+        Log.d(LOG_TAG, "sdcard @ " + Environment.getExternalStorageDirectory());
 
 
         File file = new File(context.getExternalFilesDir(
                 Environment.DIRECTORY_DOCUMENTS), fileName);
-        if(!file.mkdirs()){
+        if (!file.mkdirs()) {
             Log.e(LOG_TAG, "Directory/File not created");
-        }else
+        } else
             Log.d(LOG_TAG, "Directory/File created!");
         return file;
     }
@@ -82,11 +99,16 @@ public class TouchFramework extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // App Bar initialization
+        toolbar = (Toolbar) findViewById(R.id.app_bar);
+        setSupportActionBar(toolbar);
+
+
         mTextView = (TextView) findViewById(R.id.log_display);
         mTextView.setTextSize(11);
         mTextView.setMovementMethod(new ScrollingMovementMethod());
 
-        ViewGroupB group1 = (ViewGroupB) findViewById(R.id.group1);
+        ViewGroup1 group1 = (ViewGroup1) findViewById(R.id.group1);
         group1.setPointerToTextView(mTextView);
         group1.setBridge(this);
 
@@ -111,6 +133,7 @@ public class TouchFramework extends Activity
                 //mTextView.append("PRINT FROM FILE TO DISPLAY...");
                 printToDisplay();
             }
+
         });
 
         initStorage();
@@ -118,6 +141,7 @@ public class TouchFramework extends Activity
 
 
     }
+
     // Write to Screen
     private void printToDisplay() {
 
@@ -127,7 +151,7 @@ public class TouchFramework extends Activity
 
     }
 
-    //TODO: Once you get this working, siwtch over to getExternalCacheDir();
+    //TODO: Once you get this working, switch over to getExternalCacheDir();
     private void clearFile() {
         // clear file logic
 
@@ -142,7 +166,7 @@ public class TouchFramework extends Activity
 
 
         //Log.d(LOG_TAG, "clearing external file...");
-        mWriteToFile =true;
+        mWriteToFile = true;
         //mTypeTouched = ViewType.INACTIVE;
 
         // DEBUG ONLY
@@ -151,14 +175,15 @@ public class TouchFramework extends Activity
     }
 
     BufferedReader mBufferedReader = null;
-    void readFromFile(){
+
+    void readFromFile() {
 
         // Clear the screen & displays new set of messages
         mTextView.setText(mAllMessages);
 
         // Reset Scroller to the top of the textView
         Scroller scroller = new Scroller(this);
-        scroller.startScroll(0,0,0,0);
+        scroller.startScroll(0, 0, 0, 0);
         mTextView.setScroller(scroller);
 
         mAllMessages = new StringBuilder("");
@@ -187,12 +212,13 @@ public class TouchFramework extends Activity
 
 
     StringBuilder mAllMessages;
+
     void writeToFile(String log) {
         // write log to file
-  //      Log.d(LOG_TAG, "WTF: "+log);
+        //      Log.d(LOG_TAG, "WTF: "+log);
 
         mAllMessages.append(log);
- //       Log.d(LOG_TAG, mAllMessages.toString());
+        //       Log.d(LOG_TAG, mAllMessages.toString());
 
 /*
         try {
@@ -218,10 +244,10 @@ public class TouchFramework extends Activity
 
         boolean b;
 
-        int maxY = mTextView.getHeight()+20;
+        int maxY = mTextView.getHeight() + 20;
 
         // Don't write to display if the touch event originates from the display
-        if ((event.getY()>maxY)){
+        if ((event.getY() > maxY)) {
 
             String result = "";
             // getAction returns both pointer and the event
@@ -249,11 +275,11 @@ public class TouchFramework extends Activity
             //Log.d(LOG_TAG, "Activity dispatchTouchEvent: " + result);
             //Log.d(LOG_TAG, "Activity dispatchTouchEvent RETURNS: " + b + "\n");
 
-            if(mWriteToFile || mLastWriteBeforeStop)
-            writeToFile("Activity dispatchTouchEvent: " + result + "\n");
+            if (mWriteToFile || mLastWriteBeforeStop)
+                writeToFile("Activity dispatchTouchEvent: " + result + "\n");
             b = super.dispatchTouchEvent(event);
-            if(mWriteToFile || mLastWriteBeforeStop)
-            writeToFile("Activity dispatchTouchEvent returns: " + b + "\n");
+            if (mWriteToFile || mLastWriteBeforeStop)
+                writeToFile("Activity dispatchTouchEvent returns: " + b + "\n");
 
             if (!mWriteToFile) {
                 printToDisplay();
@@ -261,21 +287,23 @@ public class TouchFramework extends Activity
 
             return b;
 
-        }else{
+        } else {
             return super.dispatchTouchEvent(event);
         }
     }
+
     // flag indicate whether to write to file or not
     boolean mWriteToFile = true;
     boolean mLastWriteBeforeStop = false;
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
         String result = "";
-        boolean b=false;
+        boolean b = false;
 
-        int maxY = mTextView.getHeight()+20;
-        if ((event.getY()>maxY)){
+        int maxY = mTextView.getHeight() + 20;
+        if ((event.getY() > maxY)) {
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
                     //mTextView.append("Activity onTouchEvent DOWN\n");
@@ -297,14 +325,14 @@ public class TouchFramework extends Activity
                     // false (it will return true if the view captured
                     // the event
                     b = super.onTouchEvent(event);
-                    if (mTypeTouched==ViewType.VIEWGROUP ||
-                            (mTypeTouched==ViewType.VIEW2)){
+                    if (mTypeTouched == ViewType.VIEWGROUP ||
+                            (mTypeTouched == ViewType.VIEW2)) {
                         writeToFile("Activity onTouchEvent: " + result + "\n");
                         //b = super.onTouchEvent(event);
 
                         writeToFile("Activity onTouchEvent returns: " + b + "\n");
-                        mWriteToFile=false;
-                        mLastWriteBeforeStop=true;
+                        mWriteToFile = false;
+                        mLastWriteBeforeStop = true;
                     }
                     break;
                 case MotionEvent.ACTION_POINTER_UP:
@@ -325,12 +353,12 @@ public class TouchFramework extends Activity
 
             // Remove
             //Log.d(LOG_TAG, "Activity onTouchEvent: " + result);
-            if(mWriteToFile)
+            if (mWriteToFile)
                 writeToFile("Activity onTouchEvent: " + result + "\n");
 
 
             //Log.d(LOG_TAG, "Activity onTouchEvent RETURNS: " + b + "\n");
-            if(mWriteToFile){
+            if (mWriteToFile) {
                 b = super.onTouchEvent(event);
 
                 writeToFile("Activity onTouchEvent returns: " + b + "\n");
@@ -338,16 +366,16 @@ public class TouchFramework extends Activity
             }
             return b;
 
-        }else{
+        } else {
             return super.dispatchTouchEvent(event);
         }
     }
 
+
     private enum ViewType {
         VIEWGROUP,
         VIEW1,
-        VIEW2,
-
+        VIEW2
     }
 
     private static ViewType mTypeTouched = ViewType.VIEWGROUP;
@@ -369,13 +397,66 @@ public class TouchFramework extends Activity
 
         if (type instanceof CollageView) {
 
-            if (color== Color.WHITE)
+            if (color == Color.WHITE)
                 mTypeTouched = ViewType.VIEW2;
             else
                 mTypeTouched = ViewType.VIEW1;
         }
 
     }
-/*/*/
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        // Configure action views such as adding event listeners here.
+        // Action views such as SearchView widget
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        if (id == R.id.preferences) {
+            showDialog();
+        }
+
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    // Logic for Preferences for Intercepts
+    void showDialog() {
+
+
+        FragmentManager manager = getFragmentManager();
+        InterceptsDialog interceptsDialog = InterceptsDialog.newInstance();
+        interceptsDialog.show(manager, "Intercept Choice");
+
+
+    }
+
+    private int mDownIntercept, mMoveIntercept, mUpIntercept;
+
+    @Override
+    public void setDownIntercept(int selection) {
+        mDownIntercept = selection;
+    }
+
+    @Override
+    public void setMoveIntercept(int selection) {
+        mMoveIntercept = selection;
+    }
+
+    @Override
+    public void setUpIntercept(int selection) {
+        mUpIntercept = selection;
+    }
+
 
 }
