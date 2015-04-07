@@ -1,6 +1,7 @@
 package ray.cyberpup.com.touchframework;
 
 import android.app.FragmentManager;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -48,14 +49,23 @@ public class TouchFramework extends ActionBarActivity
 
     private static final String LOG_TAG = TouchFramework.class.getSimpleName();
 
+    private static final String INTERCEPTS_FILE = "SavedInterceptsFile";
+
     private static TextView mTextView;
     private Toolbar mToolbar;
     private Scroller mScroller;
+
+    private SharedPreferences mStoredIntercepts;
+    private SharedPreferences.Editor mStoredInterceptsEditor;
+
+
     private StringBuilder mMessageCache;
 
-    // flag indicate whether to write to file or not
+    private CustomViewGroup mGroup1, mGroup2;
+    private CustomTextView view;
+
+    // flag indicate whether to write to cache or not
     boolean mWriteToMsgCache = true;
-    boolean mLastWriteBeforeStop = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,29 +91,25 @@ public class TouchFramework extends ActionBarActivity
          * mTextView.setEnabled(false);
          */
 
-        CustomViewGroup group1 = (CustomViewGroup) findViewById(R.id.group1);
-        group1.setPointerToTextView(mTextView);
+        mGroup1 = (CustomViewGroup) findViewById(R.id.group1);
+        mGroup1.setPointerToTextView(mTextView);
 
-        CustomViewGroup group2 = (CustomViewGroup) findViewById(R.id.group2);
-        group2.setPointerToTextView(mTextView);
+        mGroup2 = (CustomViewGroup) findViewById(R.id.group2);
+        mGroup2.setPointerToTextView(mTextView);
 
-        CustomTextView view_consume_event = (CustomTextView) findViewById(R.id.view);
-        view_consume_event.setPointerToTextView(mTextView);
-
-
-        view_consume_event.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                printToDisplay();
-            }
-
-        });
+        view = (CustomTextView) findViewById(R.id.view);
+        view.setPointerToTextView(mTextView);
 
         mMessageCache = new StringBuilder();
 
         // Initialize log display's scroller
         mScroller = new Scroller(this);
+
+        mStoredIntercepts = getSharedPreferences(INTERCEPTS_FILE, MODE_PRIVATE);
+        mStoredInterceptsEditor = mStoredIntercepts.edit();
+
+        // Set Intercepts from shared preference file
+        mGroup1.setIntercept(mStoredIntercepts.getInt());
 
     }
 
@@ -168,20 +174,21 @@ public class TouchFramework extends ActionBarActivity
                     break;
             }
 
-            if(mWriteToMsgCache || mLastWriteBeforeStop){
+            //if(mWriteToMsgCache || mLastWriteBeforeStop){
+
+            if(mWriteToMsgCache){
 
                 writeToFile("Activity's dispatchTouchEvent receives "+result+" event.\n\n");
 
-                Log.d(LOG_TAG, "Activity dispatchTouchEvent: " + result+"Y:"+event.getY()+"maxY:"+maxY);
                 b = super.dispatchTouchEvent(event);
-
-                Log.d(LOG_TAG, "Activity dispatchTouchEvent RETURNS: " + b + "\n");
 
                 writeToFile("Activity's dispatchTouchEvent returns " + b + "\n\n");
 
             }
 
 
+            // This checks if ACTION_UP's mWriteToMsgCache has been triggered
+            // after super.dispatchTouchEvent is called.
             if (!mWriteToMsgCache) {
                 Log.d(LOG_TAG, "print to display()");
                 printToDisplay();
@@ -231,7 +238,6 @@ public class TouchFramework extends ActionBarActivity
 
                     writeToFile("Activity's onTouchEvent returns " + b + ".\n\n");
                     mWriteToMsgCache = false;
-                    mLastWriteBeforeStop = true;
 
                     break;
                 case MotionEvent.ACTION_POINTER_UP:
@@ -328,21 +334,61 @@ public class TouchFramework extends ActionBarActivity
 
     }
 
-    private int mDownIntercept, mMoveIntercept, mUpIntercept;
+    // TODO: Do I need to set no intercepts here?
 
     @Override
     public void setDownIntercept(int selection) {
-        mDownIntercept = selection;
+
+        switch(selection){
+            case 1:
+                // send intercept to View Group 1
+                mGroup1.setIntercept(1);
+
+                break;
+            case 2:
+                // send intercept to View Group 2
+                mGroup2.setIntercept(1);
+                break;
+            case 3:
+                // send intercept to View
+                break;
+        }
     }
 
     @Override
     public void setMoveIntercept(int selection) {
-        mMoveIntercept = selection;
+
+        switch(selection){
+            case 1:
+                // send intercept to View Group 1
+                mGroup1.setIntercept(2);
+                break;
+            case 2:
+                // send intercept to View Group 2
+                mGroup2.setIntercept(2);
+                break;
+            case 3:
+                // send intercept to View
+                break;
+        }
     }
 
     @Override
     public void setUpIntercept(int selection) {
-        mUpIntercept = selection;
+
+        switch(selection){
+            case 1:
+                // send intercept to View Group 1
+                mGroup1.setIntercept(3);
+                break;
+            case 2:
+                // send intercept to View Group 2
+                mGroup2.setIntercept(3);
+                break;
+            case 3:
+                // send intercept to View
+                break;
+        }
     }
 
 

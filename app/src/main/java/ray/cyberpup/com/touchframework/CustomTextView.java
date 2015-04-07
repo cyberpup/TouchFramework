@@ -64,6 +64,13 @@ public class CustomTextView extends TextView {
 
     }
 
+    void setIntercept(int intercept){
+        switch(intercept){
+            case 1:
+
+        }
+    }
+
     // Interface to communicate back to Activity that this view was clicked
     protected interface Bridge {
         public void setViewType(View type);

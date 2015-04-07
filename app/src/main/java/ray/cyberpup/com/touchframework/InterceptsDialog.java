@@ -8,8 +8,6 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 /**
@@ -20,11 +18,12 @@ import android.widget.RadioGroup;
  * @author Raymond Tong
  */
 public class InterceptsDialog extends DialogFragment {
-    private Button confirm, cancel;
 
     // Creates a lazy instantiation of a singleton of this class
     // This is entirely unnecessary, and is done here as an exercise for myself
     private static InterceptsDialog sInstance = null;
+
+    private int mDownIntercept, mMoveIntercept, mUpIntercept;
 
     public static InterceptsDialog newInstance() {
 
@@ -60,45 +59,30 @@ public class InterceptsDialog extends DialogFragment {
             throw new ClassCastException(activity.toString()
                     + " must implement InterceptsDialogListener");
         }
-    }
 
-    public void onUpRadioButtonClicked(View v) {
 
-        // Is the button checked?
-        boolean checked = ((RadioButton) v).isChecked();
-
-        switch (v.getId()) {
-
-            case R.id.vgup1:
-                if (checked)
-                    mUpIntercept = 1;
-                break;
-            case R.id.vgup2:
-                if (checked)
-                    mUpIntercept = 2;
-                break;
-            case R.id.vup:
-                if (checked)
-                    mUpIntercept = 3;
-                break;
-        }
 
     }
 
-
-    private int mDownIntercept, mMoveIntercept, mUpIntercept;
+    // Determines which container handles which intercepts
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
+        // TODO: add ContextThemeWrapper to change theme
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.fragment_dialog, null);
+
+        setCancelable(false);
 
         RadioGroup downGroup = (RadioGroup) view.findViewById(R.id.down_intercept_group);
         downGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 switch (checkedId) {
+                    case R.id.nodown:
+                        mDownIntercept = 0;
+                        break;
                     case R.id.vgdown1:
                         mDownIntercept = 1;
                         break;
@@ -117,14 +101,17 @@ public class InterceptsDialog extends DialogFragment {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 switch (checkedId) {
+                    case R.id.nomove:
+                        mMoveIntercept = 0;
+                        break;
                     case R.id.vgmove1:
-                            mMoveIntercept = 1;
+                        mMoveIntercept = 1;
                         break;
                     case R.id.vgmove2:
-                            mMoveIntercept = 2;
+                        mMoveIntercept = 2;
                         break;
                     case R.id.vmove:
-                            mMoveIntercept = 3;
+                        mMoveIntercept = 3;
                         break;
                 }
             }
@@ -135,6 +122,9 @@ public class InterceptsDialog extends DialogFragment {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 switch (checkedId) {
+                    case R.id.noup:
+                        mUpIntercept = 0;
+                        break;
                     case R.id.vgup1:
                         mUpIntercept = 1;
                         break;
@@ -162,6 +152,7 @@ public class InterceptsDialog extends DialogFragment {
 
                 .setPositiveButton("confirm", new DialogInterface.OnClickListener() {
 
+                    // Sets the intercepts TouchFramework will process
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mListener.setDownIntercept(mDownIntercept);
@@ -171,6 +162,7 @@ public class InterceptsDialog extends DialogFragment {
                 });
 
         Dialog dialog = builder.create();
+
         return dialog;
     }
 

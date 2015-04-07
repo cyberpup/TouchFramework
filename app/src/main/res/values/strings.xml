@@ -1,89 +1,11 @@
 <resources>
     <string name="app_name">TouchFramework</string>
 
-    <string-array name="listofthings">
-
-        <item>" arrow</item>
-        <item>" ball</item>
-        <item>" car</item>
-        <item>" desk</item>
-        <item>" ear</item>
-        <item>" flower</item>
-        <item>" guitar</item>
-        <item>" hat</item>
-        <item>" iron</item>
-        <item>" jet</item>
-        <item>" kettle</item>
-        <item>" lock</item>
-        <item>" mat</item>
-        <item>" note</item>
-
-    </string-array>
-
-    <string-array name="listofnames">
-
-        <item>" Andy"</item>
-        <item>" Billy"</item>
-        <item>" Charlie</item>
-        <item>" Daisy</item>
-        <item>" Edgar</item>
-        <item>" Frank</item>
-        <item>" Gia</item>
-        <item>" Hilary</item>
-        <item>" Indio</item>
-        <item>" John</item>
-        <item>" Ken</item>
-        <item>" Luke</item>
-        <item>" Matt</item>
-        <item>" Nancy</item>
-
-    </string-array>
-
-    <string-array name="listoffoods">
-
-        <item>" apple</item>
-        <item>" burger</item>
-        <item>" chocolate</item>
-        <item>" dumplings</item>
-        <item>" egg</item>
-        <item>" fish</item>
-        <item>" grapes</item>
-        <item>" ham</item>
-        <item>" ice cream</item>
-        <item>" jam</item>
-        <item>" kale</item>
-        <item>" lobster</item>
-        <item>" milk</item>
-        <item>" noodles</item>
-
-    </string-array>
-
-    <string-array name="listofcharacters">
-
-        <item>" Aquaman</item>
-        <item>" Batman</item>
-        <item>" Cyborg</item>
-        <item>" Daredevil</item>
-        <item>" Elektra</item>
-        <item>" Flash</item>
-        <item>" Groot</item>
-        <item>" Hawkeye</item>
-        <item>" Ironman</item>
-        <item>" Juggernaut</item>
-        <item>" Kingpin</item>
-        <item>" Loki</item>
-        <item>" Mystique</item>
-        <item>" Namor</item>
-
-    </string-array>
-
-    <string name="Q1">View A</string>
-    <string name="Q2">View B</string>
-    <string name="Q3">View C</string>
-    <string name="init_msg">"Log Events are displayed here.\nTouch any one of the colored regions to see how the Android's touch event handling pipeline works."</string>
 
     <string name="viewgroup1">ViewGroup1</string>
     <string name="viewgroup2">ViewGroup2</string>
     <string name="view">View</string>
+    <string name="none">None</string>
+    <string name="init_msg">LOG DISPLAY</string>
 
 </resources>

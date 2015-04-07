@@ -29,6 +29,22 @@ public class CustomViewGroup extends FrameLayout {
     private MODE mDown, mMove, mUp;
     enum MODE {INTERCEPT};
 
+    void setIntercept(int eventToIntercept){
+
+        switch(eventToIntercept){
+            case 1:
+                mDown = MODE.INTERCEPT;
+                break;
+            case 2:
+                mMove = MODE.INTERCEPT;
+                break;
+            case 3:
+                mUp = MODE.INTERCEPT;
+                break;
+        }
+
+    }
+
     // Interface to communicate back to Activity that this view's type
     // and assigned color
     protected interface Bridge{

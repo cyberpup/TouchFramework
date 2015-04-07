@@ -1,110 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/dialog_intercepts"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:scrollbars="vertical">
 
-    <TextView
-        android:id="@+id/down_intercept_text"
-        android:layout_width="wrap_content"
+    <RelativeLayout
+        android:id="@+id/dialog_intercepts"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Down Intercept"/>
-    <RadioGroup
-        android:id="@+id/down_intercept_group"
-        android:layout_marginTop="8dp"
-        android:layout_below="@id/down_intercept_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:onClick="onDownRadioButtonClicked">
+        android:scrollbarAlwaysDrawHorizontalTrack="true"
+        android:scrollbars="horizontal">
 
-        <RadioButton
-            android:id="@+id/vgdown1"
-            style="@style/MyRadioButtonTheme"
-            android:text="@string/viewgroup1" />
+        <TextView
+            android:id="@+id/down_intercept_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Down Intercept" />
 
-        <RadioButton
-            android:id="@+id/vgdown2"
-            style="@style/MyRadioButtonTheme"
-            android:text="@string/viewgroup2" />
+        <RadioGroup
+            android:id="@+id/down_intercept_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/down_intercept_text"
+            android:layout_marginTop="8dp"
+            android:onClick="onDownRadioButtonClicked"
+            android:orientation="vertical">
 
-        <RadioButton
-            android:id="@+id/vdown"
-            style="@style/MyRadioButtonTheme"
-            android:text="@string/view" />
-    </RadioGroup>
+            <RadioButton
+                android:id="@+id/nodown"
+                style="@style/MyRadioButtonTheme"
+                android:checked="true"
+                android:text="@string/none" />
 
-    <TextView
-        android:id="@+id/move_intercept_text"
-        android:layout_below="@id/down_intercept_group"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Move Intercept"/>
+            <RadioButton
+                android:id="@+id/vgdown1"
+                style="@style/MyRadioButtonTheme"
+                android:text="@string/viewgroup1" />
 
-    <RadioGroup
-        android:id="@+id/move_intercept_group"
-        android:layout_marginTop="8dp"
-        android:layout_below="@id/move_intercept_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:onClick="onMoveRadioButtonClicked">
+            <RadioButton
+                android:id="@+id/vgdown2"
+                style="@style/MyRadioButtonTheme"
+                android:text="@string/viewgroup2" />
 
-        <RadioButton
-            android:id="@+id/vgmove1"
-            style="@style/MyRadioButtonTheme"
-            android:text="@string/viewgroup1" />
-
-        <RadioButton
-            android:id="@+id/vgmove2"
-            style="@style/MyRadioButtonTheme"
-            android:text="@string/viewgroup2" />
-
-        <RadioButton
-            android:id="@+id/vmove"
-            style="@style/MyRadioButtonTheme"
-            android:text="@string/view" />
+            <RadioButton
+                android:id="@+id/vdown"
+                style="@style/MyRadioButtonTheme"
+                android:text="@string/view" />
 
 
-    </RadioGroup>
+        </RadioGroup>
 
-    <TextView
-        android:id="@+id/up_intercept_text"
-        android:layout_below="@id/move_intercept_group"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Up Intercept"/>
+        <TextView
+            android:id="@+id/move_intercept_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/down_intercept_group"
+            android:layout_marginTop="8dp"
+            android:text="Move Intercept" />
 
-    <RadioGroup
-        android:id="@+id/up_intercept_group"
-        android:layout_below="@id/up_intercept_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal"
-        android:onClick="onUpRadioButtonClicked">
+        <RadioGroup
+            android:id="@+id/move_intercept_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/move_intercept_text"
+            android:layout_marginTop="8dp"
+            android:onClick="onMoveRadioButtonClicked"
+            android:orientation="vertical">
 
-        <RadioButton
-            android:id="@+id/vgup1"
-            style="@style/MyRadioButtonTheme"
-            android:text="@string/viewgroup1" />
+            <RadioButton
+                android:id="@+id/nomove"
+                style="@style/MyRadioButtonTheme"
+                android:checked="true"
+                android:text="@string/none" />
 
-        <RadioButton
-            android:id="@+id/vgup2"
-            style="@style/MyRadioButtonTheme"
-            android:text="@string/viewgroup2" />
+            <RadioButton
+                android:id="@+id/vgmove1"
+                style="@style/MyRadioButtonTheme"
+                android:text="@string/viewgroup1" />
 
-        <RadioButton
-            android:id="@+id/vup"
-            style="@style/MyRadioButtonTheme"
-            android:text="@string/view" />
-    </RadioGroup>
+            <RadioButton
+                android:id="@+id/vgmove2"
+                style="@style/MyRadioButtonTheme"
+                android:text="@string/viewgroup2" />
 
-</RelativeLayout>
+            <RadioButton
+                android:id="@+id/vmove"
+                style="@style/MyRadioButtonTheme"
+                android:text="@string/view" />
+
+
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/up_intercept_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/move_intercept_group"
+            android:layout_marginTop="8dp"
+            android:text="Up Intercept" />
+
+        <RadioGroup
+            android:id="@+id/up_intercept_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/up_intercept_text"
+            android:layout_marginTop="8dp"
+            android:onClick="onUpRadioButtonClicked"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/noup"
+                style="@style/MyRadioButtonTheme"
+                android:checked="true"
+                android:text="@string/none" />
+
+            <RadioButton
+                android:id="@+id/vgup1"
+                style="@style/MyRadioButtonTheme"
+                android:text="@string/viewgroup1" />
+
+            <RadioButton
+                android:id="@+id/vgup2"
+                style="@style/MyRadioButtonTheme"
+                android:text="@string/viewgroup2" />
+
+            <RadioButton
+                android:id="@+id/vup"
+                style="@style/MyRadioButtonTheme"
+                android:text="@string/view" />
+        </RadioGroup>
+
+    </RelativeLayout>
+
+</ScrollView>
 
 
 
