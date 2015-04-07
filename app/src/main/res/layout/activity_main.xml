@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:collage="http://schemas.android.com/apk/res-auto"
+
     xmlns:viewgroup="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -20,44 +20,49 @@
         android:text="@string/init_msg"
         android:textColor="#FFFFFF"/>
 
-    <ray.cyberpup.com.touchframework.ViewGroup1
+    <ray.cyberpup.com.touchframework.CustomViewGroup
         android:id="@+id/group1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/log_display"
-        android:background="#ff9bd7ff"
-        viewgroup:touch_color="#FF9BD7FF"
-        android:text="ViewGroup 1"
-        viewgroup:lines="false">
+        android:background="@color/primaryColor"
+        viewgroup:touch_color="@color/primaryColor"
+        viewgroup:text_margin_top="40dp"
+        android:text="ViewGroup 1">
 
-        <ray.cyberpup.com.touchframework.ViewGroupB
+        <ray.cyberpup.com.touchframework.CustomViewGroup
             android:id="@+id/group2"
-            android:layout_width="wrap_content"
-            android:layout_height="220dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="80dp"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
             android:layout_below="@id/log_display"
             android:text="ViewGroup 2"
-            android:background="#fffff172"
-            viewgroup:touch_color="#fffff172"
-            viewgroup:lines="false">
+            viewgroup:text_margin_top="40dp"
+            
+            android:background="@color/primaryColor900"
+            viewgroup:touch_color="@color/primaryColor900">
 
-                <ray.cyberpup.com.touchframework.CustomTextView
-                    android:id="@+id/consume_view"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="View A"
-                    android:background="#ff00f71d"/>
-
-                <ray.cyberpup.com.touchframework.CustomTextView
-                    android:id="@+id/ignore_view"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="View B"
-                    android:background="#FFFFFF"/>
+            <ray.cyberpup.com.touchframework.CustomTextView
+                android:id="@+id/view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="80dp"
+                android:layout_marginLeft="50dp"
+                android:layout_marginRight="50dp"
+                viewgroup:text_from_top="50dp"
+                android:text="View"
+                android:background="@color/colorAccent">
 
 
-        </ray.cyberpup.com.touchframework.ViewGroupB>
+            </ray.cyberpup.com.touchframework.CustomTextView>
 
-    </ray.cyberpup.com.touchframework.ViewGroup1>
+
+
+        </ray.cyberpup.com.touchframework.CustomViewGroup>
+
+    </ray.cyberpup.com.touchframework.CustomViewGroup>
 
 
 </RelativeLayout>

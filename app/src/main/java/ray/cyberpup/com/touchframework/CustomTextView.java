@@ -1,12 +1,12 @@
 package ray.cyberpup.com.touchframework;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
@@ -18,6 +18,16 @@ import android.widget.TextView;
  * @author Raymond Tong
  */
 public class CustomTextView extends TextView {
+
+    private static final String LOG_TAG = CustomTextView.class.getSimpleName();
+
+    private MODE mDown, mMove, mUp;
+    private enum MODE {INTERCEPT};
+    private int mColor;
+    private String mText;
+    private int mMarginTop = 35;
+    private TouchFramework mActivity;
+
     public CustomTextView(Context context) {
         super(context);
     }
@@ -26,8 +36,7 @@ public class CustomTextView extends TextView {
         this(context, attrs, 0);
     }
 
-    int mColor;
-    String mText;
+
     public CustomTextView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
@@ -38,105 +47,100 @@ public class CustomTextView extends TextView {
 
         mColor = a.getColor(R.styleable.CustomTextView_android_background, Color.WHITE);
         mText = a.getString(R.styleable.CustomTextView_android_text);
+        mMarginTop = a.getDimensionPixelSize(R.styleable.CustomTextView_text_from_top, 20);
 
         if (mText != null){
 
             //Log.d(LOG_TAG, ""+mText);
             mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mTextPaint.setTextSize(25);
+            mTextPaint.setTextSize(30);
+            mTextPaint.setColor(Color.WHITE);
 
         }
+
+        // set pointer to containing Activity
+        mActivity = (TouchFramework)context;
+
     }
 
     // Interface to communicate back to Activity that this view was clicked
     protected interface Bridge {
-        public void setViewType(View type, int color);
+        public void setViewType(View type);
     }
 
     private TextView mTextView;
-
     public void setPointerToTextView(TextView textView) {
         mTextView = textView;
 
     }
 
-    TouchFramework mActivity;
-    public void setBridge(Activity activity) {
-        mActivity = (TouchFramework) activity;
-    }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-        mActivity.setViewType(this, mColor);
+
+        //DEBUG
+        Log.d(LOG_TAG, "Dispatch");
+        mActivity.setViewType(this);
         mTextView.setTextColor(mColor);
-        String result = "";
-
-        // getAction returns both pointer and the event
-        // getActionMasked "masks out the pointer info and returns only the event
-        switch (event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
-                result = "DOWN";
-                break;
-            case MotionEvent.ACTION_MOVE:
-                result = "MOVE";
-                break;
-            case MotionEvent.ACTION_UP:
-                result = "UP";
-                break;
-            case MotionEvent.ACTION_POINTER_UP:
-                result = "POINTER UP";
-                break;
-            case MotionEvent.ACTION_POINTER_DOWN:
-                result = "POINTER DOWN";
-                break;
-            case MotionEvent.ACTION_CANCEL:
-                result = "CANCEL";
-                break;
-        }
-        boolean b=super.dispatchTouchEvent(event);
-        //Log.d(LOG_TAG, mText + " dispatchTouchEvent: " + result);
-        mActivity.writeToFile(mText + " dispatchTouchEvent: " + result + "\n");
-
-        //Log.d(LOG_TAG, mText + " dispatchTouchEvent RETURNS " + b + "\n");
-        mActivity.writeToFile(mText + " dispatchTouchEvent returns " + b + "\n");
-        return b;
+        return processMotionEvents("dispatchTouchEvent", event);
     }
 
     @Override
      public boolean onTouchEvent(MotionEvent event) {
 
+        Log.d(LOG_TAG, "onTouch");
         //getParent().requestDisallowInterceptTouchEvent(true);
 
-        String result = "";
-        switch (event.getActionMasked()) {
+        return processMotionEvents("onTouchEvent", event);
+    }
+
+    private boolean processMotionEvents(String callingMethod, MotionEvent event){
+
+        String result="";
+
+        // returns true, if intercept occurs
+        switch(event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
-                result = "DOWN";
+                result="DOWN";
+                if(mDown == MODE.INTERCEPT)
+                    return writeToFile(callingMethod, result, true);
                 break;
+
             case MotionEvent.ACTION_MOVE:
-                result = "MOVE";
+                result="MOVE";
+                if(mMove == MODE.INTERCEPT)
+                    return writeToFile(callingMethod, result, true);
                 break;
+
             case MotionEvent.ACTION_UP:
-                result = "UP";
+                result="UP";
+                if(mUp == MODE.INTERCEPT)
+                    return writeToFile(callingMethod, result, true);
                 break;
-            case MotionEvent.ACTION_POINTER_UP:
-                result = "POINTER UP";
-                break;
-            case MotionEvent.ACTION_POINTER_DOWN:
-                result = "POINTER DOWN";
-                break;
+
             case MotionEvent.ACTION_CANCEL:
-                result = "CANCEL";
+                result="CANCEL";
                 break;
-
         }
-        boolean b=super.onTouchEvent(event);
-        //Log.d(LOG_TAG, mText + " onTouchEvent: " + result);
-        mActivity.writeToFile(mText + " onTouchEvent: " + result + "\n");
 
+        // Otherwise, returns false
+        boolean b=false;
+        switch(callingMethod){
+            case "dispatchTouchEvent":
+                b = super.dispatchTouchEvent(event);
+                break;
+            case "onTouchEvent":
+                b = super.onTouchEvent(event);
+                break;
+        }
+        return writeToFile(callingMethod, result, b);
+    }
+    private boolean writeToFile(String callingMethod, String event,  boolean result){
 
-        //Log.d(LOG_TAG, mText + " onTouchEvent RETURNS " + b + "\n");
-        mActivity.writeToFile(mText + " onTouchEvent returns " + b + "\n");
-        return b;
+        mActivity.writeToFile(mText + "'s "+callingMethod
+                +" received " + event + " event and returns " + result + "\n\n");
+
+        return result;
     }
 
     Paint mTextPaint;
@@ -146,11 +150,13 @@ public class CustomTextView extends TextView {
         if (mText!=null){
 
             // Display Label
-            int x, y;
-            x = getWidth()/2 - mText.length()*6; // substract width of text/2
-            y = getHeight()/2;
+            float x, y;
+            // Center text in view
+            x = getWidth()*.5f - (mTextPaint.measureText(mText)*.5f); // subtract half of text width
+            y = mMarginTop;
 
             canvas.drawText(mText, x, y, mTextPaint);
         }
     }
+
 }

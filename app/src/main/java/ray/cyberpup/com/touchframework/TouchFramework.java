@@ -1,10 +1,8 @@
 package ray.cyberpup.com.touchframework;
 
 import android.app.FragmentManager;
-import android.content.Context;
-import android.graphics.Color;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.method.ScrollingMovementMethod;
@@ -16,23 +14,19 @@ import android.view.View;
 import android.widget.Scroller;
 import android.widget.TextView;
 
-import java.io.BufferedReader;
-import java.io.File;
-
 /**
  * Demonstrates how Android's Touch Event Handling Pipeline functions
  * <p/>
  * NOTE:
  * This may not be very visually impressive but it was quite a challenge
- * for me to write, as one needs to understand how the motion event handling
+ * to write, as one needs to understand how the motion event handling
  * pipeline functions first before coding this. It is not enough to merely
  * add append statements to various methods called within the touch framework
  * to properly display the call sequence involved.
  * <p/>
  * The activity calls the DecorView which is private final located in PhoneWindow.java
- * which extends Window (i.e. base class for top-level window). I've left out calls from the DecorView as I don't know of a
- * way to override it's method which turns out to be impossible as it's set
- * to private final.
+ * which extends Window (i.e. base class for top-level window). I've left out calls from the DecorView as
+ * override it's method is prevented by its private final declaration.
  * <p/>
  * Also what's not displayed is the View.OnClickListener's onTouch() which can't
  * be overriden either. If a view has a clickListener attached to it, the listener's onTouch() will
@@ -48,206 +42,107 @@ import java.io.File;
  * @author Raymond Tong
  */
 public class TouchFramework extends ActionBarActivity
-        implements CollageView.Bridge, ViewGroupB.Bridge, InterceptsDialog.InterceptsDialogListener {
+        implements  CustomViewGroup.Bridge,
+                    CustomTextView.Bridge,
+                    InterceptsDialog.InterceptsDialogListener {
 
     private static final String LOG_TAG = TouchFramework.class.getSimpleName();
 
     private static TextView mTextView;
+    private Toolbar mToolbar;
+    private Scroller mScroller;
+    private StringBuilder mMessageCache;
 
-    private static File mAppDataFile;
-
-    private Toolbar toolbar;
-
-    private boolean isExternalStorageWritable() {
-
-        String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            return true;
-        }
-        return false;
-
-    }
-
-    private void initStorage() {
-
-        // if External storage is available
-        if (isExternalStorageWritable()) {
-            mAppDataFile = getFileStorageDir(this, "cyberpup");
-            Log.d(LOG_TAG, "cool! folder is at " + mAppDataFile.getAbsolutePath());
-        } else {
-            Log.d(LOG_TAG, "boo! only internal available");
-        }
-
-        // if External storage is not available
-    }
-
-    private File getFileStorageDir(Context context, String fileName) {
-        Log.d(LOG_TAG, "sdcard @ " + Environment.getExternalStorageDirectory());
-
-
-        File file = new File(context.getExternalFilesDir(
-                Environment.DIRECTORY_DOCUMENTS), fileName);
-        if (!file.mkdirs()) {
-            Log.e(LOG_TAG, "Directory/File not created");
-        } else
-            Log.d(LOG_TAG, "Directory/File created!");
-        return file;
-    }
+    // flag indicate whether to write to file or not
+    boolean mWriteToMsgCache = true;
+    boolean mLastWriteBeforeStop = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // App Bar initialization
-        toolbar = (Toolbar) findViewById(R.id.app_bar);
-        setSupportActionBar(toolbar);
+        //Fix Orientation to Portrait for this Activity
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        // App Bar initialization
+        mToolbar = (Toolbar) findViewById(R.id.app_bar);
+        setSupportActionBar(mToolbar);
 
         mTextView = (TextView) findViewById(R.id.log_display);
         mTextView.setTextSize(11);
+        //Set the Log Display to scroll
         mTextView.setMovementMethod(new ScrollingMovementMethod());
 
-        ViewGroup1 group1 = (ViewGroup1) findViewById(R.id.group1);
+        /**
+         *
+         * Cannot use this to disable all touch events to display
+         * because scrolling is disabled along with it
+         * mTextView.setEnabled(false);
+         */
+
+        CustomViewGroup group1 = (CustomViewGroup) findViewById(R.id.group1);
         group1.setPointerToTextView(mTextView);
-        group1.setBridge(this);
 
-        ViewGroupB group2 = (ViewGroupB) findViewById(R.id.group2);
+        CustomViewGroup group2 = (CustomViewGroup) findViewById(R.id.group2);
         group2.setPointerToTextView(mTextView);
-        group2.setBridge(this);
 
-
-        CustomTextView view_consume_event = (CustomTextView) findViewById(R.id.consume_view);
+        CustomTextView view_consume_event = (CustomTextView) findViewById(R.id.view);
         view_consume_event.setPointerToTextView(mTextView);
-        view_consume_event.setBridge(this);
-
-        CustomTextView view_ignore_event = (CustomTextView) findViewById(R.id.ignore_view);
-        view_ignore_event.setPointerToTextView(mTextView);
-        view_ignore_event.setBridge(this);
 
 
         view_consume_event.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                //mTextView.append("PRINT FROM FILE TO DISPLAY...");
                 printToDisplay();
             }
 
         });
 
-        initStorage();
-        mAllMessages = new StringBuilder();
+        mMessageCache = new StringBuilder();
 
+        // Initialize log display's scroller
+        mScroller = new Scroller(this);
 
     }
 
     // Write to Screen
     private void printToDisplay() {
 
-        //Log.d(LOG_TAG, "printing to display...");
-        readFromFile();
-        clearFile();
-
-    }
-
-    //TODO: Once you get this working, switch over to getExternalCacheDir();
-    private void clearFile() {
-        // clear file logic
-
-        /*
-        if(mAppDataFile.delete()) {
-            Log.d(LOG_TAG, "File deleted.");
-            mAppDataFile = getFileStorageDir(this, "cyberpup");
-
-            //TODO: try...use this.deleteFile(String name)
-        }
-        */
-
-
-        //Log.d(LOG_TAG, "clearing external file...");
-        mWriteToFile = true;
-        //mTypeTouched = ViewType.INACTIVE;
-
-        // DEBUG ONLY
-        //mAllMessages.append("Write to File Stopped.");
-        //Log.d(LOG_TAG, "Write to File stopped.");
-    }
-
-    BufferedReader mBufferedReader = null;
-
-    void readFromFile() {
-
-        // Clear the screen & displays new set of messages
-        mTextView.setText(mAllMessages);
+        // Clear the screen & display new set of messages
+        mTextView.setText(mMessageCache);
 
         // Reset Scroller to the top of the textView
-        Scroller scroller = new Scroller(this);
-        scroller.startScroll(0, 0, 0, 0);
-        mTextView.setScroller(scroller);
+        mScroller.startScroll(0, 0, 0, 0);
+        mTextView.setScroller(mScroller);
 
-        mAllMessages = new StringBuilder("");
-        //mAllMessages.delete(0,mAllMessages.length()-1);
+        // Clear out the message cache
+        mMessageCache.delete(0, mMessageCache.length());
 
-        /*
-        try {
-            FileInputStream fileInputStream = openFileInput("mytestfile.txt");
-            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
-            char[] inputBuffer= new char[1024];
-            String s="";
-            int charRead;
-
-            while((charRead=inputStreamReader.read(inputBuffer))>0){
-                String rs = String.copyValueOf(inputBuffer,0,charRead);
-                s+=rs;
-            }
-            mTextView.setText(s);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        */
+        // Allow Write to message cache
+        mWriteToMsgCache = true;
     }
 
 
-    StringBuilder mAllMessages;
+    // write log to file
 
     void writeToFile(String log) {
-        // write log to file
-        //      Log.d(LOG_TAG, "WTF: "+log);
 
-        mAllMessages.append(log);
-        //       Log.d(LOG_TAG, mAllMessages.toString());
-
-/*
-        try {
-            FileOutputStream fileout = openFileOutput("mytestfile.txt", MODE_PRIVATE);
-
-            OutputStreamWriter outputWriter = new OutputStreamWriter(fileout);
-            //outputWriter.write(log);
-            outputWriter.write(log);
-            outputWriter.close();
-
-            Log.d(LOG_TAG, "# of files saved: "+fileList().length);
-
-        } catch (IOException e) {
-            Log.e(LOG_TAG, "File write failed: "+e);
-        }
-*/
+        mMessageCache.append(log);
     }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
 
-        //Log.d(LOG_TAG, "mTypeTouched = " + mTypeTouched);
+        //Log.d(LOG_TAG, "Dispatch");
+        boolean b=false;
 
-        boolean b;
+        int maxY = mTextView.getHeight() + mToolbar.getHeight(); // Consider the height of toolbar
 
-        int maxY = mTextView.getHeight() + 20;
 
-        // Don't write to display if the touch event originates from the display
-        if ((event.getY() > maxY)) {
+        // Don't write to display if the touch event is within bounds of log display
+        if (event.getY() >= maxY) {
 
             String result = "";
             // getAction returns both pointer and the event
@@ -272,16 +167,23 @@ public class TouchFramework extends ActionBarActivity
                     result = "CANCEL";
                     break;
             }
-            //Log.d(LOG_TAG, "Activity dispatchTouchEvent: " + result);
-            //Log.d(LOG_TAG, "Activity dispatchTouchEvent RETURNS: " + b + "\n");
 
-            if (mWriteToFile || mLastWriteBeforeStop)
-                writeToFile("Activity dispatchTouchEvent: " + result + "\n");
-            b = super.dispatchTouchEvent(event);
-            if (mWriteToFile || mLastWriteBeforeStop)
-                writeToFile("Activity dispatchTouchEvent returns: " + b + "\n");
+            if(mWriteToMsgCache || mLastWriteBeforeStop){
 
-            if (!mWriteToFile) {
+                writeToFile("Activity's dispatchTouchEvent receives "+result+" event.\n\n");
+
+                Log.d(LOG_TAG, "Activity dispatchTouchEvent: " + result+"Y:"+event.getY()+"maxY:"+maxY);
+                b = super.dispatchTouchEvent(event);
+
+                Log.d(LOG_TAG, "Activity dispatchTouchEvent RETURNS: " + b + "\n");
+
+                writeToFile("Activity's dispatchTouchEvent returns " + b + "\n\n");
+
+            }
+
+
+            if (!mWriteToMsgCache) {
+                Log.d(LOG_TAG, "print to display()");
                 printToDisplay();
             }
 
@@ -292,32 +194,30 @@ public class TouchFramework extends ActionBarActivity
         }
     }
 
-    // flag indicate whether to write to file or not
-    boolean mWriteToFile = true;
-    boolean mLastWriteBeforeStop = false;
+
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
+        //Log.d(LOG_TAG, "onTouch");
         String result = "";
         boolean b = false;
 
-        int maxY = mTextView.getHeight() + 20;
-        if ((event.getY() > maxY)) {
+        int maxY = mTextView.getHeight() + 20; // 20 extra padding for the user
+
+        if ((event.getY() >= maxY)) {
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
-                    //mTextView.append("Activity onTouchEvent DOWN\n");
                     result = "DOWN";
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    //mTextView.append("Activity onTouchEvent MOVE\n");
                     result = "MOVE";
                     break;
 
                 // Touch Dispatch events end here for views/viewgroups
                 // that ignore the touch event
                 case MotionEvent.ACTION_UP:
-                    //mTextView.append("Activity onTouchEvent UP\n");
+
                     result = "UP";
                     // Event was not consumed, end of touch process
                     // if the current view is a simple view, then check
@@ -325,15 +225,14 @@ public class TouchFramework extends ActionBarActivity
                     // false (it will return true if the view captured
                     // the event
                     b = super.onTouchEvent(event);
-                    if (mTypeTouched == ViewType.VIEWGROUP ||
-                            (mTypeTouched == ViewType.VIEW2)) {
-                        writeToFile("Activity onTouchEvent: " + result + "\n");
-                        //b = super.onTouchEvent(event);
 
-                        writeToFile("Activity onTouchEvent returns: " + b + "\n");
-                        mWriteToFile = false;
-                        mLastWriteBeforeStop = true;
-                    }
+                    writeToFile("Activity's onTouchEvent receives "+result+" event.\n\n");
+                    // b = super.onTouchEvent(event);
+
+                    writeToFile("Activity's onTouchEvent returns " + b + ".\n\n");
+                    mWriteToMsgCache = false;
+                    mLastWriteBeforeStop = true;
+
                     break;
                 case MotionEvent.ACTION_POINTER_UP:
                     //mTextView.append("Activity onTouchEvent POINTER UP\n");
@@ -351,32 +250,24 @@ public class TouchFramework extends ActionBarActivity
             }
 
 
-            // Remove
-            //Log.d(LOG_TAG, "Activity onTouchEvent: " + result);
-            if (mWriteToFile)
-                writeToFile("Activity onTouchEvent: " + result + "\n");
-
-
             //Log.d(LOG_TAG, "Activity onTouchEvent RETURNS: " + b + "\n");
-            if (mWriteToFile) {
+            if (mWriteToMsgCache) {
+
+                writeToFile("Activity's onTouchEvent receives "+result+" event.\n\n");
                 b = super.onTouchEvent(event);
 
-                writeToFile("Activity onTouchEvent returns: " + b + "\n");
+                writeToFile("Activity onTouchEvent returns: " + b + "\n\n");
 
             }
             return b;
 
         } else {
-            return super.dispatchTouchEvent(event);
+            return super.onTouchEvent(event);
         }
     }
 
 
-    private enum ViewType {
-        VIEWGROUP,
-        VIEW1,
-        VIEW2
-    }
+    private enum ViewType {VIEWGROUP,VIEW}
 
     private static ViewType mTypeTouched = ViewType.VIEWGROUP;
 
@@ -389,18 +280,14 @@ public class TouchFramework extends ActionBarActivity
      * @return integer equivalent type
      */
     @Override
-    public void setViewType(View type, int color) {
+    public void setViewType(View type) {
 
-        if (type instanceof ViewGroupB) {
+        if (type instanceof CustomViewGroup) {
             mTypeTouched = ViewType.VIEWGROUP;
         }
 
-        if (type instanceof CollageView) {
-
-            if (color == Color.WHITE)
-                mTypeTouched = ViewType.VIEW2;
-            else
-                mTypeTouched = ViewType.VIEW1;
+        if (type instanceof CustomTextView) {
+            mTypeTouched = ViewType.VIEW;
         }
 
     }

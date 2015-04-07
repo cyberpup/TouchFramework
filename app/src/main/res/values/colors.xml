@@ -3,9 +3,9 @@
     <color name="white">#FFFFFF</color>
     <color name="primaryColor">#2196F3</color>
     <color name="primaryColorDark">#1976D2</color>
-    <color name="colorAccent">#ffff31ee</color>
+    <color name="colorAccent">#00C853</color>
     <color name="navigationColor">#FFFFFF</color>
     <color name="overlayColor">@color/primaryColor</color>
-
+    <color name="primaryColor900">#0D47A1</color>
 
 </resources>
