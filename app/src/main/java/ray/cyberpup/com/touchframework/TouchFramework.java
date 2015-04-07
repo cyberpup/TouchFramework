@@ -108,8 +108,7 @@ public class TouchFramework extends ActionBarActivity
         mStoredIntercepts = getSharedPreferences(INTERCEPTS_FILE, MODE_PRIVATE);
         mStoredInterceptsEditor = mStoredIntercepts.edit();
 
-        // Set Intercepts from shared preference file
-        mGroup1.setIntercept(mStoredIntercepts.getInt());
+        
 
     }
 
