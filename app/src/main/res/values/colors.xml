@@ -7,5 +7,7 @@
     <color name="navigationColor">#FFFFFF</color>
     <color name="overlayColor">@color/primaryColor</color>
     <color name="primaryColor900">#0D47A1</color>
+    <color name="green500">#4CAF50</color>
+    <color name="blue100">#BBDEFB</color>
 
 </resources>

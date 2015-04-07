@@ -25,8 +25,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/log_display"
-        android:background="@color/primaryColor"
-        viewgroup:touch_color="@color/primaryColor"
+        android:background="@drawable/gradientblue"
+        viewgroup:touch_color="@color/blue100"
         viewgroup:text_margin_top="40dp"
         android:text="ViewGroup 1">
 
@@ -40,9 +40,8 @@
             android:layout_below="@id/log_display"
             android:text="ViewGroup 2"
             viewgroup:text_margin_top="40dp"
-            
-            android:background="@color/primaryColor900"
-            viewgroup:touch_color="@color/primaryColor900">
+            android:background="@drawable/gradientdarkblue"
+            viewgroup:touch_color="@color/primaryColorDark">
 
             <ray.cyberpup.com.touchframework.CustomTextView
                 android:id="@+id/view"
@@ -53,7 +52,8 @@
                 android:layout_marginRight="50dp"
                 viewgroup:text_from_top="50dp"
                 android:text="View"
-                android:background="@color/colorAccent">
+                android:background="@drawable/gradientgreen"
+                viewgroup:touch_color_view="@color/colorAccent">
 
 
             </ray.cyberpup.com.touchframework.CustomTextView>

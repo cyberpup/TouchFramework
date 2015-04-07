@@ -45,7 +45,8 @@ public class CustomTextView extends TextView {
                 0,
                 defStyleAttr);
 
-        mColor = a.getColor(R.styleable.CustomTextView_android_background, Color.WHITE);
+        mColor = a.getColor(R.styleable.CustomTextView_touch_color_view, Color.BLACK);
+        //mColor = a.getColor(R.styleable.CustomTextView_android_background, Color.WHITE);
         mText = a.getString(R.styleable.CustomTextView_android_text);
         mMarginTop = a.getDimensionPixelSize(R.styleable.CustomTextView_text_from_top, 20);
 

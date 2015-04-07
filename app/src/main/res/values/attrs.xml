@@ -11,7 +11,7 @@
 
 
     <declare-styleable name="CustomTextView">
-        <attr name="android:background"/>
+        <attr name="touch_color_view" format="color"/>
         <attr name="android:text"/>
         <attr name="text_from_top" format="dimension"/>
 
