@@ -8,7 +8,6 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.View;
 import android.widget.TextView;
 
 /**
@@ -17,16 +16,18 @@ import android.widget.TextView;
  *
  * @author Raymond Tong
  */
+
 public class CustomTextView extends TextView {
 
     private static final String LOG_TAG = CustomTextView.class.getSimpleName();
 
     private MODE mDown, mMove, mUp;
-    private enum MODE {INTERCEPT};
+
     private int mColor;
     private String mText;
     private int mMarginTop = 35;
     private TouchFramework mActivity;
+    enum MODE {INTERCEPT};
 
     public CustomTextView(Context context) {
         super(context);
@@ -64,16 +65,9 @@ public class CustomTextView extends TextView {
 
     }
 
-    void setIntercept(int intercept){
-        switch(intercept){
-            case 1:
-
-        }
-    }
-
-    // Interface to communicate back to Activity that this view was clicked
-    protected interface Bridge {
-        public void setViewType(View type);
+    private int[] mIntercepts;
+    void setIntercepts(int[] intercepts){
+        mIntercepts = intercepts;
     }
 
     private TextView mTextView;
@@ -88,7 +82,6 @@ public class CustomTextView extends TextView {
 
         //DEBUG
         Log.d(LOG_TAG, "Dispatch");
-        mActivity.setViewType(this);
         mTextView.setTextColor(mColor);
         return processMotionEvents("dispatchTouchEvent", event);
     }
@@ -145,8 +138,8 @@ public class CustomTextView extends TextView {
     }
     private boolean writeToFile(String callingMethod, String event,  boolean result){
 
-        mActivity.writeToFile(mText + "'s "+callingMethod
-                +" received " + event + " event and returns " + result + "\n\n");
+        mActivity.writeToFile(mText + "'s "+callingMethod +" received " + event + "\n\n");
+        mActivity.writeToFile(mText + "'s " + callingMethod + " returns " + result +"\n\n");
 
         return result;
     }

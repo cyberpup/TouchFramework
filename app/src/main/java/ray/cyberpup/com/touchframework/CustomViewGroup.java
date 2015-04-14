@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -26,29 +25,13 @@ public class CustomViewGroup extends FrameLayout {
     private TouchFramework mActivity;
     private Paint mTextPaint;
 
-    private MODE mDown, mMove, mUp;
-    enum MODE {INTERCEPT};
 
-    void setIntercept(int eventToIntercept){
+    // int[event type]
+    private int[] mIntercepts;
+    void setIntercepts(int[] intercepts){
 
-        switch(eventToIntercept){
-            case 1:
-                mDown = MODE.INTERCEPT;
-                break;
-            case 2:
-                mMove = MODE.INTERCEPT;
-                break;
-            case 3:
-                mUp = MODE.INTERCEPT;
-                break;
-        }
+        mIntercepts = intercepts;
 
-    }
-
-    // Interface to communicate back to Activity that this view's type
-    // and assigned color
-    protected interface Bridge{
-        public void setViewType(View type);
     }
 
     public CustomViewGroup(Context context) {
@@ -118,7 +101,6 @@ public class CustomViewGroup extends FrameLayout {
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
 
-        mActivity.setViewType(this);
         mTextView.setTextColor(mTouchColor);
 
         return processMotionEvents("dispatchTouchEvent", event);
@@ -145,19 +127,19 @@ public class CustomViewGroup extends FrameLayout {
         switch(event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
                 result="DOWN";
-                if(mDown == MODE.INTERCEPT)
+                if(mIntercepts[0] == 1)
                     return writeToFile(callingMethod, result, true);
                 break;
 
             case MotionEvent.ACTION_MOVE:
                 result="MOVE";
-                if(mMove == MODE.INTERCEPT)
+                if(mIntercepts[1] == 1)
                     return writeToFile(callingMethod, result, true);
                 break;
 
             case MotionEvent.ACTION_UP:
                 result="UP";
-                if(mUp == MODE.INTERCEPT)
+                if(mIntercepts[2] == 1)
                     return writeToFile(callingMethod, result, true);
                 break;
 
@@ -170,28 +152,23 @@ public class CustomViewGroup extends FrameLayout {
         // Otherwise, returns false
         switch(callingMethod){
             case "dispatchTouchEvent":
-                mActivity.writeToFile(mText + "'s " + callingMethod + " receives " + result +"\n\n");
                 b = super.dispatchTouchEvent(event);
                 break;
             case "onInterceptTouchEvent":
-                mActivity.writeToFile(mText + "'s " + callingMethod + " receives " + result +"\n\n");
                 b = super.onInterceptTouchEvent(event);
                 break;
             case "onTouchEvent":
-                mActivity.writeToFile(mText + "'s " + callingMethod + " receives " + result +"\n\n");
                 b = super.onTouchEvent(event);
                 break;
         }
 
-        mActivity.writeToFile(mText + "'s " + callingMethod + " returns " + b +"\n\n");
-        return b;
+        return writeToFile(callingMethod, result, b);
     }
 
     private boolean writeToFile(String callingMethod, String event,  boolean result){
 
-        mActivity.writeToFile(mText +"'s "+callingMethod
-                                +" received " + event + " event and returns " + result +"\n\n");
-
+        mActivity.writeToFile(mText +"'s " + callingMethod + " receives " + event + " event\n\n");
+        mActivity.writeToFile(mText +"'s " + callingMethod +" returns " + result +"\n\n");
         return result;
     }
 

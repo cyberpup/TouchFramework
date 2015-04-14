@@ -2,7 +2,6 @@ package ray.cyberpup.com.touchframework;
 
 import android.app.FragmentManager;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
@@ -11,7 +10,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.View;
 import android.widget.Scroller;
 import android.widget.TextView;
 
@@ -43,9 +41,7 @@ import android.widget.TextView;
  * @author Raymond Tong
  */
 public class TouchFramework extends ActionBarActivity
-        implements  CustomViewGroup.Bridge,
-                    CustomTextView.Bridge,
-                    InterceptsDialog.InterceptsDialogListener {
+        implements InterceptsDialog.InterceptsDialogListener {
 
     private static final String LOG_TAG = TouchFramework.class.getSimpleName();
 
@@ -58,22 +54,43 @@ public class TouchFramework extends ActionBarActivity
     private SharedPreferences mStoredIntercepts;
     private SharedPreferences.Editor mStoredInterceptsEditor;
 
-
     private StringBuilder mMessageCache;
 
     private CustomViewGroup mGroup1, mGroup2;
-    private CustomTextView view;
+    private CustomTextView mView;
+
+    private FragmentManager mFragMan;
 
     // flag indicate whether to write to cache or not
     boolean mWriteToMsgCache = true;
+
+    private InterceptsDialog mInterceptsDialog = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mFragMan = getFragmentManager();
+
+        // find the retained fragment
+        if (mInterceptsDialog == null){
+
+            Log.d(LOG_TAG, "mInterceptsDialog is null");
+            mInterceptsDialog = new InterceptsDialog();
+
+
+        } else{
+            Log.d(LOG_TAG, "mInterceptsDialog exist");
+            mInterceptsDialog = (InterceptsDialog)mFragMan.findFragmentByTag("Intercept Choice");
+            showDialog();
+
+        }
+
+
         //Fix Orientation to Portrait for this Activity
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // App Bar initialization
         mToolbar = (Toolbar) findViewById(R.id.app_bar);
@@ -97,21 +114,55 @@ public class TouchFramework extends ActionBarActivity
         mGroup2 = (CustomViewGroup) findViewById(R.id.group2);
         mGroup2.setPointerToTextView(mTextView);
 
-        view = (CustomTextView) findViewById(R.id.view);
-        view.setPointerToTextView(mTextView);
+        mView = (CustomTextView) findViewById(R.id.view);
+        mView.setPointerToTextView(mTextView);
 
+        // Messages to Display are stored here
         mMessageCache = new StringBuilder();
 
         // Initialize log display's scroller
         mScroller = new Scroller(this);
 
+        // Initialization of Intercept Storage values
+        // Each View Group/View hold 3 values "down"=0, "move"=1, "up"=2
+        mGroup1Intercepts = new int[3];
+        mGroup2Intercepts = new int[3];
+        mViewIntercepts = new int[3];
+
+        // SharedPreference Keys
+        mKeys = getResources().getStringArray(R.array.InterceptKeys);
+
         mStoredIntercepts = getSharedPreferences(INTERCEPTS_FILE, MODE_PRIVATE);
         mStoredInterceptsEditor = mStoredIntercepts.edit();
 
-        // Set Intercepts from shared preference file
-        // mGroup1.setIntercept(mStoredIntercepts.getInt());
+    }
+    String[] mKeys;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+
+
+        int j=0;
+        while(j<9) {
+            for(int i=0; i<3; i++) {
+
+                mGroup1Intercepts[i] = mStoredIntercepts.getInt(mKeys[j++], 0);
+                mGroup2Intercepts[i] = mStoredIntercepts.getInt(mKeys[j++], 0);
+                mViewIntercepts[i] = mStoredIntercepts.getInt(mKeys[j++], 0);
+
+                // DEBUG
+                Log.d(LOG_TAG, "mGroup1:"+i +" "+ mGroup1Intercepts[i]);
+                Log.d(LOG_TAG, "mGroup2:"+i +" "+ mGroup1Intercepts[i]);
+                Log.d(LOG_TAG, "mView:  "+i +" "+ mViewIntercepts[i]);
+            }
+        }
+
+        setIntercepts();
 
     }
+
 
     // Write to Screen
     private void printToDisplay() {
@@ -142,7 +193,7 @@ public class TouchFramework extends ActionBarActivity
     public boolean dispatchTouchEvent(MotionEvent event) {
 
         //Log.d(LOG_TAG, "Dispatch");
-        boolean b=false;
+        boolean b = false;
 
         int maxY = mTextView.getHeight() + mToolbar.getHeight(); // Consider the height of toolbar
 
@@ -176,9 +227,9 @@ public class TouchFramework extends ActionBarActivity
 
             //if(mWriteToMsgCache || mLastWriteBeforeStop){
 
-            if(mWriteToMsgCache){
+            if (mWriteToMsgCache) {
 
-                writeToFile("Activity's dispatchTouchEvent receives "+result+" event.\n\n");
+                writeToFile("Activity's dispatchTouchEvent receives " + result + " event.\n\n");
 
                 b = super.dispatchTouchEvent(event);
 
@@ -200,8 +251,6 @@ public class TouchFramework extends ActionBarActivity
             return super.dispatchTouchEvent(event);
         }
     }
-
-
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -231,11 +280,9 @@ public class TouchFramework extends ActionBarActivity
                     // to see if the current onTouchEvent(event) returns
                     // false (it will return true if the view captured
                     // the event
+
                     b = super.onTouchEvent(event);
-
-                    writeToFile("Activity's onTouchEvent receives "+result+" event.\n\n");
-                    // b = super.onTouchEvent(event);
-
+                    writeToFile("Activity's onTouchEvent receives " + result + " event.\n\n");
                     writeToFile("Activity's onTouchEvent returns " + b + ".\n\n");
                     mWriteToMsgCache = false;
 
@@ -259,7 +306,7 @@ public class TouchFramework extends ActionBarActivity
             //Log.d(LOG_TAG, "Activity onTouchEvent RETURNS: " + b + "\n");
             if (mWriteToMsgCache) {
 
-                writeToFile("Activity's onTouchEvent receives "+result+" event.\n\n");
+                writeToFile("Activity's onTouchEvent receives " + result + " event.\n\n");
                 b = super.onTouchEvent(event);
 
                 writeToFile("Activity onTouchEvent returns: " + b + "\n\n");
@@ -270,32 +317,6 @@ public class TouchFramework extends ActionBarActivity
         } else {
             return super.onTouchEvent(event);
         }
-    }
-
-
-    private enum ViewType {VIEWGROUP,VIEW}
-
-    private static ViewType mTypeTouched = ViewType.VIEWGROUP;
-
-    /**
-     * Tells TouchFramework what was touched to help prevent
-     * Activity dispatchTouchEvent or onTouchEvents from writing to
-     * the display if you touch anything other than a designated viewgroup or view.
-     *
-     * @param type
-     * @return integer equivalent type
-     */
-    @Override
-    public void setViewType(View type) {
-
-        if (type instanceof CustomViewGroup) {
-            mTypeTouched = ViewType.VIEWGROUP;
-        }
-
-        if (type instanceof CustomTextView) {
-            mTypeTouched = ViewType.VIEW;
-        }
-
     }
 
     @Override
@@ -323,72 +344,132 @@ public class TouchFramework extends ActionBarActivity
         return super.onOptionsItemSelected(item);
     }
 
+
     // Logic for Preferences for Intercepts
     void showDialog() {
 
-
-        FragmentManager manager = getFragmentManager();
-        InterceptsDialog interceptsDialog = InterceptsDialog.newInstance();
-        interceptsDialog.show(manager, "Intercept Choice");
+        mInterceptsDialog.show(mFragMan, "Intercept Choice");
 
 
     }
 
-    // TODO: Do I need to set no intercepts here?
+    // set to 1 if intercept exist otherwise set to zero for no intercept
+    int[] mGroup1Intercepts, mGroup2Intercepts, mViewIntercepts;
+
+
+
+    //--------------------REMOVE-------------------------------
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(LOG_TAG, "onPause()");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onPause();
+        Log.d(LOG_TAG, "onStop()");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onPause();
+        Log.d(LOG_TAG, "onDestroy()");
+    }
+
+
+    // ----------------------------------------------------------
+
 
     @Override
     public void setDownIntercept(int selection) {
 
-        switch(selection){
-            case 1:
-                // send intercept to View Group 1
-                mGroup1.setIntercept(1);
+        mGroup1Intercepts[0] = 0;
+        mGroup2Intercepts[0] = 0;
+        mViewIntercepts[0] = 0;
 
+        switch (selection) {
+
+            case 0:
+                mGroup1Intercepts[0] = 1;
+                break;
+            case 1:
+                mGroup2Intercepts[0] = 1;
                 break;
             case 2:
-                // send intercept to View Group 2
-                mGroup2.setIntercept(1);
+                mViewIntercepts[0] = 1;
                 break;
-            case 3:
-                // send intercept to View
+            default:
                 break;
         }
+
+        mStoredInterceptsEditor.putInt(mKeys[0], mGroup1Intercepts[0]);
+        mStoredInterceptsEditor.putInt(mKeys[1], mGroup2Intercepts[0]);
+        mStoredInterceptsEditor.putInt(mKeys[2], mViewIntercepts[0]);
     }
 
     @Override
     public void setMoveIntercept(int selection) {
 
-        switch(selection){
+        mGroup1Intercepts[1] = 0;
+        mGroup2Intercepts[1] = 0;
+        mViewIntercepts[1] = 0;
+
+        switch (selection) {
+
+            case 0:
+                mGroup1Intercepts[1] = 1;
+                break;
             case 1:
-                // send intercept to View Group 1
-                mGroup1.setIntercept(2);
+                mGroup2Intercepts[1] = 1;
                 break;
             case 2:
-                // send intercept to View Group 2
-                mGroup2.setIntercept(2);
+                mViewIntercepts[1] = 1;
                 break;
-            case 3:
-                // send intercept to View
+            default:
                 break;
         }
+
+        mStoredInterceptsEditor.putInt(mKeys[3], mGroup1Intercepts[1]);
+        mStoredInterceptsEditor.putInt(mKeys[4], mGroup2Intercepts[1]);
+        mStoredInterceptsEditor.putInt(mKeys[5], mViewIntercepts[1]);
     }
 
     @Override
     public void setUpIntercept(int selection) {
 
-        switch(selection){
+        mGroup1Intercepts[2] = 0;
+        mGroup2Intercepts[2] = 0;
+        mViewIntercepts[2] = 0;
+
+        switch (selection) {
+
             case 1:
-                // send intercept to View Group 1
-                mGroup1.setIntercept(3);
+                mGroup1Intercepts[2] = 1;
                 break;
             case 2:
-                // send intercept to View Group 2
-                mGroup2.setIntercept(3);
+                mGroup2Intercepts[2] = 1;
                 break;
             case 3:
-                // send intercept to View
+                mViewIntercepts[2] = 1;
+                break;
+            default:
                 break;
         }
+
+        mStoredInterceptsEditor.putInt(mKeys[6], mGroup1Intercepts[2]);
+        mStoredInterceptsEditor.putInt(mKeys[7], mGroup2Intercepts[2]);
+        mStoredInterceptsEditor.putInt(mKeys[8], mViewIntercepts[2]);
+    }
+
+
+    // Pass arrays that contain all intercept settings for each group/view
+    @Override
+    public void setIntercepts() {
+        mGroup1.setIntercepts(mGroup1Intercepts);
+        mGroup2.setIntercepts(mGroup2Intercepts);
+        mView.setIntercepts(mViewIntercepts);
+        mStoredInterceptsEditor.commit();
     }
 
 
