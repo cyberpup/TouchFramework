@@ -226,7 +226,8 @@ public class TouchFramework extends ActionBarActivity
 
             if (mWriteToMsgCache) {
 
-                writeToFile("Activity's dispatchTouchEvent receives " + result + " event.\n\n");
+                writeToFile("Activity's dispatchTouchEvent:\n");
+                writeToFile(result + " event received.\n\n");
 
                 b = super.dispatchTouchEvent(event);
 
@@ -269,7 +270,8 @@ public class TouchFramework extends ActionBarActivity
                 // All Touch Dispatch events end here
                 case MotionEvent.ACTION_UP:
                     result = "UP";
-                    writeToFile("Activity's onTouchEvent receives " + result + " event.\n\n");
+                    writeToFile("Activity's onTouchEvent:\n");
+                    writeToFile(result + " event received.\n\n");
                     b = super.onTouchEvent(event);
                     writeToFile("Activity's onTouchEvent returns " + b + ".\n\n");
                     mWriteToMsgCache = false;
@@ -294,10 +296,11 @@ public class TouchFramework extends ActionBarActivity
             //Log.d(LOG_TAG, "Activity onTouchEvent RETURNS: " + b + "\n");
             if (mWriteToMsgCache) {
 
-                writeToFile("Activity's onTouchEvent receives " + result + " event.\n\n");
+                writeToFile("Activity's onTouchEvent:\n");
+                writeToFile(result + " event received.\n\n");
                 b = super.onTouchEvent(event);
 
-                writeToFile("Activity onTouchEvent returns: " + b + "\n\n");
+                writeToFile("Activity onTouchEvent returns " + b + ".\n\n");
 
             }
             return b;

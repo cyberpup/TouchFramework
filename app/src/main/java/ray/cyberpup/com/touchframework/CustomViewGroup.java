@@ -141,34 +141,53 @@ public class CustomViewGroup extends FrameLayout {
             case MotionEvent.ACTION_DOWN:
                 result="DOWN";
                 Log.d(LOG_TAG, mText+"'s "+callingMethod+": "+result+" intercepted: "+mIntercepts[0]);
+
                 if(mIntercepts[0] == 1) {
+                    mActivity.writeToFile(mText+"'s "+callingMethod+":\n");
+                    mActivity.writeToFile(result+" event intercepted.\n\n");
                     callSuper(callingMethod, event);
                     return writeToFile(callingMethod, result, true);
+                } else {
+                    mActivity.writeToFile(mText+"'s "+callingMethod+":\n");
+                    mActivity.writeToFile(result+" event ignored.\n\n");
                 }
                 break;
 
             case MotionEvent.ACTION_MOVE:
                 result="MOVE";
                 Log.d(LOG_TAG, mText+"'s "+callingMethod+": "+result+" intercepted: "+mIntercepts[1]);
-                if(mIntercepts[1] == 1){
+
+                if(mIntercepts[1] == 1) {
+                    mActivity.writeToFile(mText+"'s "+callingMethod+":\n");
+                    mActivity.writeToFile(result+" event intercepted.\n\n");
                     callSuper(callingMethod, event);
                     return writeToFile(callingMethod, result, true);
+                } else {
+                    mActivity.writeToFile(mText+"'s "+callingMethod+":\n");
+                    mActivity.writeToFile(result+" event ignored.\n\n");
                 }
-
                 break;
 
             case MotionEvent.ACTION_UP:
                 result="UP";
                 Log.d(LOG_TAG, mText+"'s "+callingMethod+": "+result+" intercepted: "+mIntercepts[2]);
-                if(mIntercepts[2] == 1){
+
+                if(mIntercepts[2] == 1) {
+                    mActivity.writeToFile(mText+"'s "+callingMethod+":\n");
+                    mActivity.writeToFile(result+" event intercepted.\n\n");
                     callSuper(callingMethod, event);
                     return writeToFile(callingMethod, result, true);
+                } else {
+                    mActivity.writeToFile(mText+"'s "+callingMethod+":\n");
+                    mActivity.writeToFile(result+" event ignored.\n\n");
                 }
                 break;
 
             case MotionEvent.ACTION_CANCEL:
                 result="CANCEL";
                 Log.d(LOG_TAG, mText+"'s "+ callingMethod +": "+result);
+                mActivity.writeToFile(mText+"'s "+ callingMethod +":\n");
+                mActivity.writeToFile(result+" event received.\n\n");
                 callSuper(callingMethod, event);
                 break;
         }
@@ -177,27 +196,27 @@ public class CustomViewGroup extends FrameLayout {
         // Otherwise, returns false
         switch(callingMethod){
             case "dispatchTouchEvent":
-                mActivity.writeToFile(mText + "'s " + callingMethod + " receives " + result +"\n\n");
+                //mActivity.writeToFile(mText + "'s " + callingMethod + " receives " + result +"\n\n");
                 b = super.dispatchTouchEvent(event);
                 break;
             case "onInterceptTouchEvent":
-                mActivity.writeToFile(mText + "'s " + callingMethod + " receives " + result +"\n\n");
+                //mActivity.writeToFile(mText + "'s " + callingMethod + " receives " + result +"\n\n");
                 b = super.onInterceptTouchEvent(event);
                 break;
             case "onTouchEvent":
-                mActivity.writeToFile(mText + "'s " + callingMethod + " receives " + result +"\n\n");
+                //mActivity.writeToFile(mText + "'s " + callingMethod + " receives " + result +"\n\n");
                 b = super.onTouchEvent(event);
                 break;
         }
 
-        mActivity.writeToFile(mText + "'s " + callingMethod + " returns " + b +"\n\n");
+        //mActivity.writeToFile(mText + "'s " + callingMethod + " returns " + b +"\n\n");
         return b;
     }
 
     private boolean writeToFile(String callingMethod, String event,  boolean result){
 
-        mActivity.writeToFile(mText +"'s " + callingMethod + " receives " + event + " event\n\n");
-        mActivity.writeToFile(mText +"'s " + callingMethod +" returns " + result +"\n\n");
+        //mActivity.writeToFile(mText +"'s " + callingMethod + " receives " + event + " event\n\n");
+        //mActivity.writeToFile(mText +"'s " + callingMethod +" returns " + result +"\n\n");
         return result;
     }
 
