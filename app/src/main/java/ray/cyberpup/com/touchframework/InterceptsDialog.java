@@ -227,15 +227,11 @@ public class InterceptsDialog extends DialogFragment {
                         // Save to SharedPreference File
                         setCurrentSelections();
 
-                        /*
                         mListener.setDownIntercept(mDownIntercept);
                         mListener.setMoveIntercept(mMoveIntercept);
                         mListener.setUpIntercept(mUpIntercept);
 
                         mListener.setIntercepts();
-                        */
-                        // Reset the Text Display
-
                     }
                 });
 
@@ -275,6 +271,7 @@ public class InterceptsDialog extends DialogFragment {
     }
 
     // Save current state of radiogroup settings to shared preference file
+    // Used to repopulate the dialog fragment
     private void setCurrentSelections(){
 
         SharedPreferences.Editor prefsEditor = mPrefs.edit();

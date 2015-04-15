@@ -2,6 +2,7 @@ package ray.cyberpup.com.touchframework;
 
 import android.app.FragmentManager;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
@@ -45,160 +46,157 @@ public class TouchFramework extends ActionBarActivity
 
     private static final String LOG_TAG = TouchFramework.class.getSimpleName();
 
+    // Name of Shared Preferences file where intercept settings are stored
     private static final String INTERCEPTS_FILE = "SavedInterceptsFile";
 
-    private static TextView mTextView;
+    // App Bar
     private Toolbar mToolbar;
+
+    // Log Display
+    private static TextView mTextView;
+
+    // Controls Log Display scrolling
     private Scroller mScroller;
 
+    // Store intercept settings here
     private SharedPreferences mStoredIntercepts;
     private SharedPreferences.Editor mStoredInterceptsEditor;
 
+    // Cache Messages here
     private StringBuilder mMessageCache;
 
+    // My Custom Views & View Groups
     private CustomViewGroup mGroup1, mGroup2;
     private CustomTextView mView;
 
+    // Needed to show Dialog Fragment
     private FragmentManager mFragMan;
 
     // flag indicate whether to write to cache or not
-    boolean mWriteToMsgCache = true;
+    private boolean mWriteToMsgCache = true;
 
+    // Custom Dialog Fragment, UI for setting intercepts to catch touch events
     private InterceptsDialog mInterceptsDialog = null;
 
+    // set to 1 if intercept exist otherwise set to zero for no intercept
+    private int[] mGroup1Intercepts, mGroup2Intercepts, mViewIntercepts;
 
+    //
+    private String[] mKeys;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mFragMan = getFragmentManager();
-
-        // find the retained fragment
-        if (mInterceptsDialog == null){
-
-            Log.d(LOG_TAG, "mInterceptsDialog is null");
-            mInterceptsDialog = new InterceptsDialog();
-
-
-        } else{
-            Log.d(LOG_TAG, "mInterceptsDialog exist");
-            mInterceptsDialog = (InterceptsDialog)mFragMan.findFragmentByTag("Intercept Choice");
-            showDialog();
-
-        }
-
-
         //Fix Orientation to Portrait for this Activity
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        // App Bar initialization
+        // Dialog Fragment
+        mFragMan = getFragmentManager();
+        mInterceptsDialog = new InterceptsDialog();
+
+        // Custom Action Bar
         mToolbar = (Toolbar) findViewById(R.id.app_bar);
         setSupportActionBar(mToolbar);
 
-        mTextView = (TextView) findViewById(R.id.log_display);
-        mTextView.setTextSize(11);
-        //Set the Log Display to scroll
-        mTextView.setMovementMethod(new ScrollingMovementMethod());
+        // Groups & View
+        mGroup1 = (CustomViewGroup) findViewById(R.id.group1);
+        mGroup2 = (CustomViewGroup) findViewById(R.id.group2);
+        mView = (CustomTextView) findViewById(R.id.view);
 
+        // Log Display
+        mTextView = (TextView) findViewById(R.id.log_display);
+        mTextView.setTextSize(12);
+        mTextView.setMovementMethod(new ScrollingMovementMethod());//Set to scroll
+        mScroller = new Scroller(this);// Log display's scroller
+
+        // Connect View Groups/View to Log Display
+        mGroup1.setPointerToTextView(mTextView);
+        mGroup2.setPointerToTextView(mTextView);
+        mView.setPointerToTextView(mTextView);
         /**
-         *
          * Cannot use this to disable all touch events to display
          * because scrolling is disabled along with it
          * mTextView.setEnabled(false);
          */
 
-        mGroup1 = (CustomViewGroup) findViewById(R.id.group1);
-        mGroup1.setPointerToTextView(mTextView);
-
-        mGroup2 = (CustomViewGroup) findViewById(R.id.group2);
-        mGroup2.setPointerToTextView(mTextView);
-
-        mView = (CustomTextView) findViewById(R.id.view);
-        mView.setPointerToTextView(mTextView);
-
         // Messages to Display are stored here
         mMessageCache = new StringBuilder();
 
-        // Initialize log display's scroller
-        mScroller = new Scroller(this);
-
-        // Initialization of Intercept Storage values
+        // Intercepts storage
         // Each View Group/View hold 3 values "down"=0, "move"=1, "up"=2
         mGroup1Intercepts = new int[3];
         mGroup2Intercepts = new int[3];
         mViewIntercepts = new int[3];
 
-        // SharedPreference Keys
-        mKeys = getResources().getStringArray(R.array.InterceptKeys);
-
+        // SharedPreferences
         mStoredIntercepts = getSharedPreferences(INTERCEPTS_FILE, MODE_PRIVATE);
         mStoredInterceptsEditor = mStoredIntercepts.edit();
-
+        mKeys = getResources().getStringArray(R.array.InterceptKeys);
     }
-    String[] mKeys;
 
     @Override
     protected void onStart() {
         super.onStart();
 
-
-
-        int j=0;
-        while(j<9) {
-            for(int i=0; i<3; i++) {
+        // Get Intercepts from SharedPreferences file to
+        // pass to Views' TouchEvent Callbacks
+        int j = 0;
+        while (j < 9) {
+            for (int i = 0; i < 3; i++) {
 
                 mGroup1Intercepts[i] = mStoredIntercepts.getInt(mKeys[j++], 0);
                 mGroup2Intercepts[i] = mStoredIntercepts.getInt(mKeys[j++], 0);
                 mViewIntercepts[i] = mStoredIntercepts.getInt(mKeys[j++], 0);
-
-                // DEBUG
-                Log.d(LOG_TAG, "mGroup1:"+i +" "+ mGroup1Intercepts[i]);
-                Log.d(LOG_TAG, "mGroup2:"+i +" "+ mGroup1Intercepts[i]);
-                Log.d(LOG_TAG, "mView:  "+i +" "+ mViewIntercepts[i]);
             }
         }
 
         setIntercepts();
 
-    }
 
+    }
 
     // Write to Screen
     private void printToDisplay() {
 
-        // Clear the screen & display new set of messages
+        // Start fresh with new set of messages
         mTextView.setText(mMessageCache);
 
-        // Reset Scroller to the top of the textView
+        System.out.println(mMessageCache);
+
+        // Reset Scroller to the top of display
         mScroller.startScroll(0, 0, 0, 0);
         mTextView.setScroller(mScroller);
 
         // Clear out the message cache
         mMessageCache.delete(0, mMessageCache.length());
 
-        // Allow Write to message cache
+        // Allow Write to message cache again
         mWriteToMsgCache = true;
     }
 
 
-    // write log to file
-
+    // Cache event messages
     void writeToFile(String log) {
 
         mMessageCache.append(log);
     }
 
+    //------------------- Activity's Touch Event Framework BEGIN -----------------------------------
+
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
 
-        //Log.d(LOG_TAG, "Dispatch");
         boolean b = false;
 
-        int maxY = mTextView.getHeight() + mToolbar.getHeight(); // Consider the height of toolbar
+        // Since the Log Display is part of the Activity, we need to
+        // calculate Log display's area(only need height) to ignore its touch events
+        int maxY = mTextView.getHeight() + mToolbar.getHeight(); // Consider height of toolbar
 
 
-        // Don't write to display if the touch event is within bounds of log display
+        // Don't write to display if the touch event is within bounds of Display Area
+        // Otherwise, record the event
         if (event.getY() >= maxY) {
 
             String result = "";
@@ -224,8 +222,7 @@ public class TouchFramework extends ActionBarActivity
                     result = "CANCEL";
                     break;
             }
-
-            //if(mWriteToMsgCache || mLastWriteBeforeStop){
+            Log.e(LOG_TAG, "dispatchTouchEvent: " + result);
 
             if (mWriteToMsgCache) {
 
@@ -234,14 +231,12 @@ public class TouchFramework extends ActionBarActivity
                 b = super.dispatchTouchEvent(event);
 
                 writeToFile("Activity's dispatchTouchEvent returns " + b + "\n\n");
-
             }
 
-
-            // This checks if ACTION_UP's mWriteToMsgCache has been triggered
+            // This checks if onTouchEvent's ACTION_UP's mWriteToMsgCache has been triggered
             // after super.dispatchTouchEvent is called.
             if (!mWriteToMsgCache) {
-                Log.d(LOG_TAG, "print to display()");
+                // Log.d(LOG_TAG, "print to display()");
                 printToDisplay();
             }
 
@@ -255,53 +250,46 @@ public class TouchFramework extends ActionBarActivity
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        //Log.d(LOG_TAG, "onTouch");
         String result = "";
         boolean b = false;
 
-        int maxY = mTextView.getHeight() + 20; // 20 extra padding for the user
+        // Calculate Display Area to ignore touch events (only need height)
+        int maxY = mTextView.getHeight() + mToolbar.getHeight(); // Consider height of toolbar
 
         if ((event.getY() >= maxY)) {
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
                     result = "DOWN";
                     break;
+
                 case MotionEvent.ACTION_MOVE:
                     result = "MOVE";
                     break;
 
-                // Touch Dispatch events end here for views/viewgroups
-                // that ignore the touch event
+                // All Touch Dispatch events end here
                 case MotionEvent.ACTION_UP:
-
                     result = "UP";
-                    // Event was not consumed, end of touch process
-                    // if the current view is a simple view, then check
-                    // to see if the current onTouchEvent(event) returns
-                    // false (it will return true if the view captured
-                    // the event
-
-                    b = super.onTouchEvent(event);
                     writeToFile("Activity's onTouchEvent receives " + result + " event.\n\n");
+                    b = super.onTouchEvent(event);
                     writeToFile("Activity's onTouchEvent returns " + b + ".\n\n");
                     mWriteToMsgCache = false;
-
                     break;
+
                 case MotionEvent.ACTION_POINTER_UP:
-                    //mTextView.append("Activity onTouchEvent POINTER UP\n");
                     result = "POINTER UP";
                     break;
+
                 case MotionEvent.ACTION_POINTER_DOWN:
-                    //mTextView.append("Activity onTouchEvent POINTER DOWN\n");
                     result = "POINTER DOWN";
                     break;
+
                 case MotionEvent.ACTION_CANCEL:
-                    //mTextView.append("Activity onTouchEvent CANCEL\n");
                     result = "CANCEL";
                     break;
 
             }
 
+            Log.e(LOG_TAG, "onTouchEvent: "+result);
 
             //Log.d(LOG_TAG, "Activity onTouchEvent RETURNS: " + b + "\n");
             if (mWriteToMsgCache) {
@@ -318,85 +306,57 @@ public class TouchFramework extends ActionBarActivity
             return super.onTouchEvent(event);
         }
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        // Configure action views such as adding event listeners here.
-        // Action views such as SearchView widget
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
+    //------------------- Activity's Touch Event Framework END ------------------------------------
 
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        if (id == R.id.preferences) {
-            showDialog();
-        }
-
-
-        return super.onOptionsItemSelected(item);
-    }
-
-
-    // Logic for Preferences for Intercepts
+    // Dialog Fragment for Intercept Settings
     void showDialog() {
 
         mInterceptsDialog.show(mFragMan, "Intercept Choice");
 
-
     }
-
-    // set to 1 if intercept exist otherwise set to zero for no intercept
-    int[] mGroup1Intercepts, mGroup2Intercepts, mViewIntercepts;
-
 
 
     //--------------------REMOVE-------------------------------
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d(LOG_TAG, "onPause()");
+        //Log.e(LOG_TAG, "onPause()");
     }
 
     @Override
     protected void onStop() {
         super.onPause();
-        Log.d(LOG_TAG, "onStop()");
+        //Log.e(LOG_TAG, "onStop()");
     }
 
     @Override
     protected void onDestroy() {
         super.onPause();
-        Log.d(LOG_TAG, "onDestroy()");
+        //Log.e(LOG_TAG, "onDestroy()");
     }
 
-
     // ----------------------------------------------------------
-
 
     @Override
     public void setDownIntercept(int selection) {
 
+        // Flip all intercepts off
         mGroup1Intercepts[0] = 0;
         mGroup2Intercepts[0] = 0;
         mViewIntercepts[0] = 0;
 
+        // Flip selected intercept on
         switch (selection) {
 
-            case 0:
+            case 1:
                 mGroup1Intercepts[0] = 1;
                 break;
-            case 1:
+            case 2:
                 mGroup2Intercepts[0] = 1;
                 break;
-            case 2:
+            case 3:
                 mViewIntercepts[0] = 1;
                 break;
             default:
@@ -406,6 +366,7 @@ public class TouchFramework extends ActionBarActivity
         mStoredInterceptsEditor.putInt(mKeys[0], mGroup1Intercepts[0]);
         mStoredInterceptsEditor.putInt(mKeys[1], mGroup2Intercepts[0]);
         mStoredInterceptsEditor.putInt(mKeys[2], mViewIntercepts[0]);
+        mStoredInterceptsEditor.commit();
     }
 
     @Override
@@ -417,13 +378,13 @@ public class TouchFramework extends ActionBarActivity
 
         switch (selection) {
 
-            case 0:
+            case 1:
                 mGroup1Intercepts[1] = 1;
                 break;
-            case 1:
+            case 2:
                 mGroup2Intercepts[1] = 1;
                 break;
-            case 2:
+            case 3:
                 mViewIntercepts[1] = 1;
                 break;
             default:
@@ -433,6 +394,7 @@ public class TouchFramework extends ActionBarActivity
         mStoredInterceptsEditor.putInt(mKeys[3], mGroup1Intercepts[1]);
         mStoredInterceptsEditor.putInt(mKeys[4], mGroup2Intercepts[1]);
         mStoredInterceptsEditor.putInt(mKeys[5], mViewIntercepts[1]);
+        mStoredInterceptsEditor.commit();
     }
 
     @Override
@@ -460,17 +422,47 @@ public class TouchFramework extends ActionBarActivity
         mStoredInterceptsEditor.putInt(mKeys[6], mGroup1Intercepts[2]);
         mStoredInterceptsEditor.putInt(mKeys[7], mGroup2Intercepts[2]);
         mStoredInterceptsEditor.putInt(mKeys[8], mViewIntercepts[2]);
+        mStoredInterceptsEditor.commit();
     }
 
-
-    // Pass arrays that contain all intercept settings for each group/view
+    // Pass Intercept settings to their respective View objects
     @Override
     public void setIntercepts() {
+
         mGroup1.setIntercepts(mGroup1Intercepts);
         mGroup2.setIntercepts(mGroup2Intercepts);
         mView.setIntercepts(mViewIntercepts);
-        mStoredInterceptsEditor.commit();
+
+
     }
+
+
+    //------------------- Tool/Action Bar BEGIN ---------------------------------------------------
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        // Configure action views such as adding event listeners here.
+        // Action views such as SearchView widget
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        if (id == R.id.preferences) {
+            showDialog();
+        }
+
+
+        return super.onOptionsItemSelected(item);
+    }
+    //------------------- Tool/Action Bar BEGIN ---------------------------------------------------
 
 
 }
