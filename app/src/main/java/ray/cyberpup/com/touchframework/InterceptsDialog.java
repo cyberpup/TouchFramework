@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.RadioGroup;
@@ -154,7 +153,7 @@ public class InterceptsDialog extends DialogFragment {
                         break;
                 }
 
-                Log.d(LOG_TAG, "mDownIntercept checked changed: "+mDownIntercept);
+                //Log.d(LOG_TAG, "mDownIntercept checked changed: "+mDownIntercept);
             }
         });
 
@@ -179,7 +178,7 @@ public class InterceptsDialog extends DialogFragment {
                         break;
                 }
 
-                Log.d(LOG_TAG, "mMoveIntercept checked changed: "+mMoveIntercept);
+                //Log.d(LOG_TAG, "mMoveIntercept checked changed: "+mMoveIntercept);
             }
         });
 
@@ -202,7 +201,7 @@ public class InterceptsDialog extends DialogFragment {
                         mUpIntercept = 3;
                         break;
                 }
-                Log.d(LOG_TAG, "mUpIntercept checked changed: "+mUpIntercept);
+                //Log.d(LOG_TAG, "mUpIntercept checked changed: "+mUpIntercept);
             }
         });
 
@@ -226,7 +225,6 @@ public class InterceptsDialog extends DialogFragment {
 
                         // Save to SharedPreference File
                         setCurrentSelections();
-
                         mListener.setDownIntercept(mDownIntercept);
                         mListener.setMoveIntercept(mMoveIntercept);
                         mListener.setUpIntercept(mUpIntercept);
@@ -249,7 +247,7 @@ public class InterceptsDialog extends DialogFragment {
 
 
         for(String key:keys)
-            Log.d(LOG_TAG, key+" "+mPrefs.getInt(key,0));
+            //Log.d(LOG_TAG, key+" "+mPrefs.getInt(key,0));
         // Current state of the radiogroup
         for(int k=0; k<keys.length; k++){
 
@@ -257,13 +255,13 @@ public class InterceptsDialog extends DialogFragment {
 
                 if (k<3){
                     checkItem(keys[k], "Down");
-                    Log.d(LOG_TAG, "Down set: "+keys[k]);
+                    //Log.d(LOG_TAG, "Down set: "+keys[k]);
                 }else if(k>=3 && k<6){
                     checkItem(keys[k], "Move");
-                    Log.d(LOG_TAG, "Move set: "+keys[k]);
+                    //Log.d(LOG_TAG, "Move set: "+keys[k]);
                 }else{
                     checkItem(keys[k], "Up");
-                    Log.d(LOG_TAG, "Up set: "+keys[k]);
+                    //Log.d(LOG_TAG, "Up set: "+keys[k]);
                 }
             }
         }
@@ -288,17 +286,17 @@ public class InterceptsDialog extends DialogFragment {
             case 1:
                 // Group1 owns down intercept, save it
                 prefsEditor.putInt(keys[0], 1);
-                Log.d(LOG_TAG, "Group1 down intercept saved");
+                //Log.d(LOG_TAG, "Group1 down intercept saved");
                 break;
             case 2:
                 // Group2 owns down intercept, save it
                 prefsEditor.putInt(keys[1], 1);
-                Log.d(LOG_TAG, "Group2 down intercept saved");
+                //Log.d(LOG_TAG, "Group2 down intercept saved");
                 break;
             case 3:
                 // View owns down intercept, save it
                 prefsEditor.putInt(keys[2], 1);
-                Log.d(LOG_TAG, "View down intercept saved");
+                //Log.d(LOG_TAG, "View down intercept saved");
                 break;
             default:
                 break;
@@ -310,17 +308,17 @@ public class InterceptsDialog extends DialogFragment {
             case 1:
                 // Group1 owns Move intercept, save it
                 prefsEditor.putInt(keys[3], 1);
-                Log.d(LOG_TAG, "Group1 move intercept saved");
+                //Log.d(LOG_TAG, "Group1 move intercept saved");
                 break;
             case 2:
                 // Group2 owns Move intercept, save it
                 prefsEditor.putInt(keys[4], 1);
-                Log.d(LOG_TAG, "Group2 move intercept saved");
+                //Log.d(LOG_TAG, "Group2 move intercept saved");
                 break;
             case 3:
                 // View owns Move intercept, save it
                 prefsEditor.putInt(keys[5], 1);
-                Log.d(LOG_TAG, "View move intercept saved");
+                //Log.d(LOG_TAG, "View move intercept saved");
                 break;
             default:
                 break;
@@ -332,17 +330,17 @@ public class InterceptsDialog extends DialogFragment {
             case 1:
                 // Group1 owns Up intercept, save it
                 prefsEditor.putInt(keys[6], 1);
-                Log.d(LOG_TAG, "Group1 up intercept saved");
+                //Log.d(LOG_TAG, "Group1 up intercept saved");
                 break;
             case 2:
                 // Group2 owns Up intercept, save it
                 prefsEditor.putInt(keys[7], 1);
-                Log.d(LOG_TAG, "Group2 up intercept saved");
+                //Log.d(LOG_TAG, "Group2 up intercept saved");
                 break;
             case 3:
                 // View owns Up intercept, save it
                 prefsEditor.putInt(keys[8], 1);
-                Log.d(LOG_TAG, "View up intercept saved");
+                //Log.d(LOG_TAG, "View up intercept saved");
                 break;
             default:
                 break;
@@ -405,7 +403,7 @@ public class InterceptsDialog extends DialogFragment {
     public void onStart() {
         super.onStart();
         getCurrentSelections();
-        Log.d(LOG_TAG, "onStart");
+        //Log.d(LOG_TAG, "onStart");
 
     }
 
@@ -413,33 +411,33 @@ public class InterceptsDialog extends DialogFragment {
     public void onResume() {
         super.onResume();
 
-        Log.d(LOG_TAG, "onResume");
+        //Log.d(LOG_TAG, "onResume");
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        Log.d(LOG_TAG, "onStop");
+        //Log.d(LOG_TAG, "onStop");
 
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(LOG_TAG, "onDestroy");
+        //Log.d(LOG_TAG, "onDestroy");
     }
 
     @Override
     public void onViewStateRestored(Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
-        Log.d(LOG_TAG, "onViewStateRestored");
+        //Log.d(LOG_TAG, "onViewStateRestored");
     }
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
-        Log.d(LOG_TAG, "onAttach");
+        //Log.d(LOG_TAG, "onAttach");
 
         // Verify that the host activity implements the callback interface
         try {
@@ -457,18 +455,18 @@ public class InterceptsDialog extends DialogFragment {
     @Override
     public void onPause() {
         super.onPause();
-        Log.d(LOG_TAG, "onPause");
+        //Log.d(LOG_TAG, "onPause");
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        Log.d(LOG_TAG, "onSaveInstanceState");
+        //Log.d(LOG_TAG, "onSaveInstanceState");
 
     }
 
     @Override
     public void onDestroyView() {
-        Log.d(LOG_TAG, "destroy view");
+        //Log.d(LOG_TAG, "destroy view");
         if (getDialog() != null && getRetainInstance())
             getDialog().setDismissMessage(null);
         super.onDestroyView();

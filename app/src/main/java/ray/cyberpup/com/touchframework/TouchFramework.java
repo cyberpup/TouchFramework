@@ -63,7 +63,7 @@ public class TouchFramework extends ActionBarActivity
     private SharedPreferences.Editor mStoredInterceptsEditor;
 
     // Cache Messages here
-    private StringBuilder mMessageCache;
+     StringBuilder mMessageCache;
 
     // My Custom Views & View Groups
     private CustomViewGroup mGroup1, mGroup2;
@@ -158,22 +158,30 @@ public class TouchFramework extends ActionBarActivity
     }
 
     // Write to Screen
-    private void printToDisplay() {
+    void printToDisplay() {
 
+        System.out.println("Print to Display: "+mMessageCache);
         // Start fresh with new set of messages
         mTextView.setText(mMessageCache);
-
-        System.out.println(mMessageCache);
 
         // Reset Scroller to the top of display
         mScroller.startScroll(0, 0, 0, 0);
         mTextView.setScroller(mScroller);
 
-        // Clear out the message cache
-        mMessageCache.delete(0, mMessageCache.length());
+        // Let the view that intercepts the Up Intercept clear the message cache
+        //if(mViewIntercepts[2] != 1)
+            clearCache();
 
         // Allow Write to message cache again
         mWriteToMsgCache = true;
+        Log.w(LOG_TAG, "Write to Cached turned on.");
+    }
+
+    void clearCache(){
+        // Clear out the message cache
+        //mMessageCache.delete(0, mMessageCache.length());
+        mMessageCache.setLength(0);
+        Log.w(LOG_TAG, "Message Cache cleared.");
     }
 
 
@@ -194,20 +202,20 @@ public class TouchFramework extends ActionBarActivity
         // calculate Log display's area(only need height) to ignore its touch events
         int maxY = mTextView.getHeight() + mToolbar.getHeight(); // Consider height of toolbar
 
-
+        String result = "";
         // Don't write to display if the touch event is within bounds of Display Area
         // Otherwise, record the event
         if (event.getY() >= maxY) {
 
-            String result = "";
+
             // getAction returns both pointer and the event
             // getActionMasked "masks out the pointer info and returns only the event
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
-                    result = "DOWN";
+                    result = "Down";
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    result = "MOVE";
+                    result = "Move";
                     break;
                 case MotionEvent.ACTION_UP:
                     result = "UP";
@@ -222,30 +230,45 @@ public class TouchFramework extends ActionBarActivity
                     result = "CANCEL";
                     break;
             }
-            Log.e(LOG_TAG, "dispatchTouchEvent: " + result);
 
-            if (mWriteToMsgCache) {
 
-                writeToFile("Activity's dispatchTouchEvent:\n");
-                writeToFile(result + " event received.\n\n");
+ // Temp           if (mWriteToMsgCache) {
 
-                b = super.dispatchTouchEvent(event);
+            writeToFile("Activity's dispatchTouchEvent:\n");
+            writeToFile(result + " event received.\n\n");
+            Log.e(LOG_TAG, "dispatchTouchEvent: " + result + " event received.");
 
-                writeToFile("Activity's dispatchTouchEvent returns " + b + "\n\n");
-            }
+            Log.e(LOG_TAG, "dispatchTouchEvent calling super");
+            b = super.dispatchTouchEvent(event);
+
+            writeToFile("Activity's dispatchTouchEvent returns " + b + "\n\n");
+            Log.e(LOG_TAG,"dispatchTouchEvent super returns " + b );
+  // Temp          }
 
             // This checks if onTouchEvent's ACTION_UP's mWriteToMsgCache has been triggered
             // after super.dispatchTouchEvent is called.
+            /* Temp
             if (!mWriteToMsgCache) {
-                // Log.d(LOG_TAG, "print to display()");
+                Log.w(LOG_TAG, "print to display()");
                 printToDisplay();
             }
-
+            */
+            if(result.equals("UP"))
+                printToDisplay();
             return b;
 
         } else {
+            // NOT within space of interest
             return super.dispatchTouchEvent(event);
         }
+    }
+
+    void setWriteToMsgCache(boolean setting){
+        mWriteToMsgCache = setting;
+        if(setting)
+            Log.w(LOG_TAG, "Write to Cached turned on remotely.");
+        else
+            Log.w(LOG_TAG, "Write to Cached turned off remotely.");
     }
 
     @Override
@@ -270,15 +293,28 @@ public class TouchFramework extends ActionBarActivity
                 // All Touch Dispatch events end here
                 case MotionEvent.ACTION_UP:
                     result = "UP";
+
+                    /* TEMP
+                    Log.d(LOG_TAG, "Activity onTouchEvent UP");
                     writeToFile("Activity's onTouchEvent:\n");
                     writeToFile(result + " event received.\n\n");
                     b = super.onTouchEvent(event);
                     writeToFile("Activity's onTouchEvent returns " + b + ".\n\n");
-                    mWriteToMsgCache = false;
+
+
+                    if(mGroup1Intercepts[2]!=1
+                            && mGroup2Intercepts[2]!=1
+                            && mViewIntercepts[2]!=1){
+                        Log.w(LOG_TAG, "Write to Cache turned off.");
+                        mWriteToMsgCache = false;
+                    }
+                    */
+
                     break;
 
                 case MotionEvent.ACTION_POINTER_UP:
                     result = "POINTER UP";
+
                     break;
 
                 case MotionEvent.ACTION_POINTER_DOWN:
@@ -287,26 +323,32 @@ public class TouchFramework extends ActionBarActivity
 
                 case MotionEvent.ACTION_CANCEL:
                     result = "CANCEL";
+                    Log.d(LOG_TAG, "Activity dispatch CANCEL");
                     break;
 
             }
 
-            Log.e(LOG_TAG, "onTouchEvent: "+result);
-
             //Log.d(LOG_TAG, "Activity onTouchEvent RETURNS: " + b + "\n");
-            if (mWriteToMsgCache) {
+ //   Temp        if (mWriteToMsgCache) {
 
                 writeToFile("Activity's onTouchEvent:\n");
                 writeToFile(result + " event received.\n\n");
+                Log.e(LOG_TAG, "onTouchEvent: " + result + " event received.");
+
+                Log.e(LOG_TAG, "onTouchEvent calling super");
                 b = super.onTouchEvent(event);
 
                 writeToFile("Activity onTouchEvent returns " + b + ".\n\n");
+                Log.e(LOG_TAG,"onTouchEvent super returns " + b );
 
-            }
+ //   Temp        }
             return b;
 
         } else {
-            return super.onTouchEvent(event);
+            Log.e(LOG_TAG, "onTouchEvent calling super");
+            super.onTouchEvent(event);
+            Log.e(LOG_TAG, "onTouchEvent super returns "+b);
+            return b;
         }
     }
     //------------------- Activity's Touch Event Framework END ------------------------------------
