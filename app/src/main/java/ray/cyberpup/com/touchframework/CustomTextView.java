@@ -8,7 +8,6 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.View;
 import android.widget.TextView;
 
 /**
@@ -17,17 +16,24 @@ import android.widget.TextView;
  *
  * @author Raymond Tong
  */
+
 public class CustomTextView extends TextView {
 
     private static final String LOG_TAG = CustomTextView.class.getSimpleName();
 
-    private MODE mDown, mMove, mUp;
-    private enum MODE {INTERCEPT};
-    private int mColor;
+    // Text Color
+    private int mTouchColor;
     private String mText;
     private int mMarginTop = 35;
     private TouchFramework mActivity;
 
+    // int[event type] => "down"=0, "move"=1, "up"=2
+    // i.e. int[0] = 1  => down intercept set
+    // i.e. int[1] = 0 => move intercept not set
+    private int[] mIntercepts;
+    void setIntercepts(int[] intercepts){
+        mIntercepts = intercepts;
+    }
     public CustomTextView(Context context) {
         super(context);
     }
@@ -45,14 +51,12 @@ public class CustomTextView extends TextView {
                 0,
                 defStyleAttr);
 
-        mColor = a.getColor(R.styleable.CustomTextView_touch_color_view, Color.BLACK);
+        mTouchColor = a.getColor(R.styleable.CustomTextView_touch_color_view, Color.WHITE);
         //mColor = a.getColor(R.styleable.CustomTextView_android_background, Color.WHITE);
         mText = a.getString(R.styleable.CustomTextView_android_text);
         mMarginTop = a.getDimensionPixelSize(R.styleable.CustomTextView_text_from_top, 20);
 
         if (mText != null){
-
-            //Log.d(LOG_TAG, ""+mText);
             mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mTextPaint.setTextSize(30);
             mTextPaint.setColor(Color.WHITE);
@@ -64,17 +68,7 @@ public class CustomTextView extends TextView {
 
     }
 
-    void setIntercept(int intercept){
-        switch(intercept){
-            case 1:
 
-        }
-    }
-
-    // Interface to communicate back to Activity that this view was clicked
-    protected interface Bridge {
-        public void setViewType(View type);
-    }
 
     private TextView mTextView;
     public void setPointerToTextView(TextView textView) {
@@ -86,22 +80,31 @@ public class CustomTextView extends TextView {
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
 
-        //DEBUG
-        Log.d(LOG_TAG, "Dispatch");
-        mActivity.setViewType(this);
-        mTextView.setTextColor(mColor);
+        mTextView.setTextColor(mTouchColor);
+
         return processMotionEvents("dispatchTouchEvent", event);
     }
 
     @Override
      public boolean onTouchEvent(MotionEvent event) {
 
-        Log.d(LOG_TAG, "onTouch");
         //getParent().requestDisallowInterceptTouchEvent(true);
 
         return processMotionEvents("onTouchEvent", event);
     }
 
+    private void callSuper(String callingMethod, MotionEvent event){
+        switch(callingMethod){
+            case "dispatchTouchEvent":
+                Log.i(LOG_TAG, callingMethod+" calling super");
+                super.dispatchTouchEvent(event);
+                break;
+            case "onTouchEvent":
+                Log.i(LOG_TAG, callingMethod + " calling super");
+                super.onTouchEvent(event);
+                break;
+        }
+    }
     private boolean processMotionEvents(String callingMethod, MotionEvent event){
 
         String result="";
@@ -110,29 +113,74 @@ public class CustomTextView extends TextView {
         switch(event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
                 result="DOWN";
-                if(mDown == MODE.INTERCEPT)
-                    return writeToFile(callingMethod, result, true);
+
+                if(mIntercepts[0] == 1) {
+
+                    writeToLog(callingMethod, result, true);
+
+                    callSuper(callingMethod, event);
+                    return true;
+                } else {
+
+                    writeToLog(callingMethod, result, false);
+
+                }
                 break;
 
             case MotionEvent.ACTION_MOVE:
                 result="MOVE";
-                if(mMove == MODE.INTERCEPT)
-                    return writeToFile(callingMethod, result, true);
+
+                if(mIntercepts[1] == 1) {
+
+                    writeToLog(callingMethod, result, true);
+
+                    callSuper(callingMethod, event);
+                    return true;
+                } else {
+                    writeToLog(callingMethod, result, false);
+                }
                 break;
 
             case MotionEvent.ACTION_UP:
                 result="UP";
-                if(mUp == MODE.INTERCEPT)
-                    return writeToFile(callingMethod, result, true);
+
+                if(mIntercepts[2] == 1) {
+                    writeToLog(callingMethod, result, true);
+
+                    if(callingMethod.equals("onTouchEvent"));{
+
+                        //mActivity.setWriteToMsgCache(false);
+                        //mActivity.printToDisplay();
+                       // mActivity.clearCache();
+                    }
+                    return true;
+                } else {
+                    writeToLog(callingMethod, result, false);
+                }
                 break;
 
             case MotionEvent.ACTION_CANCEL:
                 result="CANCEL";
+
+                mActivity.writeToFile(mText+"'s "+ callingMethod +":\n");
+                mActivity.writeToFile(result+" event received.\n\n");
+
+                Log.i(LOG_TAG, callingMethod +": "+result+" event received.");
+
+                System.out.println("TextView's "+callingMethod+" @Cancel: "+mActivity.mMessageCache);
+
+                // if View intercepts the UP event,
+                // the activity's Up will not be triggered, so printToDisplay must occur here.
+                if((mIntercepts[2] == 1)  && (callingMethod.equals("onTouchEvent"))){
+                    //mActivity.printToDisplay();
+                    //mActivity.clearCache();
+                }
+
                 break;
         }
 
-        // Otherwise, returns false
         boolean b=false;
+        Log.i(LOG_TAG, callingMethod + " calling super");
         switch(callingMethod){
             case "dispatchTouchEvent":
                 b = super.dispatchTouchEvent(event);
@@ -141,14 +189,26 @@ public class CustomTextView extends TextView {
                 b = super.onTouchEvent(event);
                 break;
         }
-        return writeToFile(callingMethod, result, b);
+
+        mActivity.writeToFile(mText + "'s " + callingMethod + " returns " + b +"\n\n");
+        Log.i(LOG_TAG, callingMethod + " returns " + b);
+
+        return b;
     }
-    private boolean writeToFile(String callingMethod, String event,  boolean result){
 
-        mActivity.writeToFile(mText + "'s "+callingMethod
-                +" received " + event + " event and returns " + result + "\n\n");
+    private void writeToLog(String callingMethod, String result, boolean isIntercepted){
 
-        return result;
+        mActivity.writeToFile(mText+"'s "+callingMethod+":\n");
+        Log.i(LOG_TAG, mText + "'s " + callingMethod + ":");
+
+        if(isIntercepted){
+            mActivity.writeToFile(result+" event intercepted.\n\n");
+            Log.i(LOG_TAG, result+" event intercepted.");
+        }else{
+            mActivity.writeToFile(result+" event ignored.\n\n");
+            Log.i(LOG_TAG, result+" event ignored.");
+        }
+
     }
 
     Paint mTextPaint;

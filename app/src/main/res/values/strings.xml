@@ -8,4 +8,20 @@
     <string name="none">None</string>
     <string name="init_msg">LOG DISPLAY</string>
 
+    <string-array name="InterceptKeys">
+
+        <item>Group1Down</item>
+        <item>Group2Down</item>
+        <item>ViewDown</item>
+
+        <item>Group1Move</item>
+        <item>Group2Move</item>
+        <item>ViewMove</item>
+
+        <item>Group1Up</item>
+        <item>Group2Up</item>
+        <item>ViewUp</item>
+
+    </string-array>
+
 </resources>

@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.View;
 import android.widget.Scroller;
 import android.widget.TextView;
 
@@ -43,121 +42,179 @@ import android.widget.TextView;
  * @author Raymond Tong
  */
 public class TouchFramework extends ActionBarActivity
-        implements  CustomViewGroup.Bridge,
-                    CustomTextView.Bridge,
-                    InterceptsDialog.InterceptsDialogListener {
+        implements InterceptsDialog.InterceptsDialogListener {
 
     private static final String LOG_TAG = TouchFramework.class.getSimpleName();
 
+    // Name of Shared Preferences file where intercept settings are stored
     private static final String INTERCEPTS_FILE = "SavedInterceptsFile";
 
-    private static TextView mTextView;
+    // App Bar
     private Toolbar mToolbar;
+
+    // Log Display
+    private static TextView mTextView;
+
+    // Controls Log Display scrolling
     private Scroller mScroller;
 
+    // Store intercept settings here
     private SharedPreferences mStoredIntercepts;
     private SharedPreferences.Editor mStoredInterceptsEditor;
 
+    // Cache Messages here
+     StringBuilder mMessageCache;
 
-    private StringBuilder mMessageCache;
-
+    // My Custom Views & View Groups
     private CustomViewGroup mGroup1, mGroup2;
-    private CustomTextView view;
+    private CustomTextView mView;
+
+    // Needed to show Dialog Fragment
+    private FragmentManager mFragMan;
 
     // flag indicate whether to write to cache or not
-    boolean mWriteToMsgCache = true;
+    private boolean mWriteToMsgCache = true;
 
+    // Custom Dialog Fragment, UI for setting intercepts to catch touch events
+    private InterceptsDialog mInterceptsDialog = null;
+
+    // set to 1 if intercept exist otherwise set to zero for no intercept
+    private int[] mGroup1Intercepts, mGroup2Intercepts, mViewIntercepts;
+
+    //
+    private String[] mKeys;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         //Fix Orientation to Portrait for this Activity
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        // App Bar initialization
+        // Dialog Fragment
+        mFragMan = getFragmentManager();
+        mInterceptsDialog = new InterceptsDialog();
+
+        // Custom Action Bar
         mToolbar = (Toolbar) findViewById(R.id.app_bar);
         setSupportActionBar(mToolbar);
 
-        mTextView = (TextView) findViewById(R.id.log_display);
-        mTextView.setTextSize(11);
-        //Set the Log Display to scroll
-        mTextView.setMovementMethod(new ScrollingMovementMethod());
+        // Groups & View
+        mGroup1 = (CustomViewGroup) findViewById(R.id.group1);
+        mGroup2 = (CustomViewGroup) findViewById(R.id.group2);
+        mView = (CustomTextView) findViewById(R.id.view);
 
+        // Log Display
+        mTextView = (TextView) findViewById(R.id.log_display);
+        mTextView.setTextSize(12);
+        mTextView.setMovementMethod(new ScrollingMovementMethod());//Set to scroll
+        mScroller = new Scroller(this);// Log display's scroller
+
+        // Connect View Groups/View to Log Display
+        mGroup1.setPointerToTextView(mTextView);
+        mGroup2.setPointerToTextView(mTextView);
+        mView.setPointerToTextView(mTextView);
         /**
-         *
          * Cannot use this to disable all touch events to display
          * because scrolling is disabled along with it
          * mTextView.setEnabled(false);
          */
 
-        mGroup1 = (CustomViewGroup) findViewById(R.id.group1);
-        mGroup1.setPointerToTextView(mTextView);
-
-        mGroup2 = (CustomViewGroup) findViewById(R.id.group2);
-        mGroup2.setPointerToTextView(mTextView);
-
-        view = (CustomTextView) findViewById(R.id.view);
-        view.setPointerToTextView(mTextView);
-
+        // Messages to Display are stored here
         mMessageCache = new StringBuilder();
 
-        // Initialize log display's scroller
-        mScroller = new Scroller(this);
+        // Intercepts storage
+        // Each View Group/View hold 3 values "down"=0, "move"=1, "up"=2
+        mGroup1Intercepts = new int[3];
+        mGroup2Intercepts = new int[3];
+        mViewIntercepts = new int[3];
 
+        // SharedPreferences
         mStoredIntercepts = getSharedPreferences(INTERCEPTS_FILE, MODE_PRIVATE);
         mStoredInterceptsEditor = mStoredIntercepts.edit();
+        mKeys = getResources().getStringArray(R.array.InterceptKeys);
+    }
 
-        
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Get Intercepts from SharedPreferences file to
+        // pass to Views' TouchEvent Callbacks
+        int j = 0;
+        while (j < 9) {
+            for (int i = 0; i < 3; i++) {
+
+                mGroup1Intercepts[i] = mStoredIntercepts.getInt(mKeys[j++], 0);
+                mGroup2Intercepts[i] = mStoredIntercepts.getInt(mKeys[j++], 0);
+                mViewIntercepts[i] = mStoredIntercepts.getInt(mKeys[j++], 0);
+            }
+        }
+
+        setIntercepts();
 
     }
 
     // Write to Screen
-    private void printToDisplay() {
+    void printToDisplay() {
 
-        // Clear the screen & display new set of messages
+        System.out.println("Print to Display: "+mMessageCache);
+        // Start fresh with new set of messages
         mTextView.setText(mMessageCache);
 
-        // Reset Scroller to the top of the textView
+        // Reset Scroller to the top of display
         mScroller.startScroll(0, 0, 0, 0);
         mTextView.setScroller(mScroller);
 
-        // Clear out the message cache
-        mMessageCache.delete(0, mMessageCache.length());
+        // Let the view that intercepts the Up Intercept clear the message cache
+        //if(mViewIntercepts[2] != 1)
+            clearCache();
 
-        // Allow Write to message cache
+        // Allow Write to message cache again
         mWriteToMsgCache = true;
+        Log.w(LOG_TAG, "Write to Cached turned on.");
+    }
+
+    void clearCache(){
+        // Clear out the message cache
+        //mMessageCache.delete(0, mMessageCache.length());
+        mMessageCache.setLength(0);
+        Log.w(LOG_TAG, "Message Cache cleared.");
     }
 
 
-    // write log to file
-
+    // Cache event messages
     void writeToFile(String log) {
 
         mMessageCache.append(log);
     }
 
+    //------------------- Activity's Touch Event Framework BEGIN -----------------------------------
+
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
 
-        //Log.d(LOG_TAG, "Dispatch");
-        boolean b=false;
+        boolean b = false;
 
-        int maxY = mTextView.getHeight() + mToolbar.getHeight(); // Consider the height of toolbar
+        // Since the Log Display is part of the Activity, we need to
+        // calculate Log display's area(only need height) to ignore its touch events
+        int maxY = mTextView.getHeight() + mToolbar.getHeight(); // Consider height of toolbar
 
-
-        // Don't write to display if the touch event is within bounds of log display
+        String result = "";
+        // Don't write to display if the touch event is within bounds of Display Area
+        // Otherwise, record the event
         if (event.getY() >= maxY) {
 
-            String result = "";
+
             // getAction returns both pointer and the event
             // getActionMasked "masks out the pointer info and returns only the event
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
-                    result = "DOWN";
+                    result = "Down";
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    result = "MOVE";
+                    result = "Move";
                     break;
                 case MotionEvent.ACTION_UP:
                     result = "UP";
@@ -173,130 +230,258 @@ public class TouchFramework extends ActionBarActivity
                     break;
             }
 
-            //if(mWriteToMsgCache || mLastWriteBeforeStop){
 
-            if(mWriteToMsgCache){
+ // Temp           if (mWriteToMsgCache) {
 
-                writeToFile("Activity's dispatchTouchEvent receives "+result+" event.\n\n");
+            writeToFile("Activity's dispatchTouchEvent:\n");
+            writeToFile(result + " event received.\n\n");
+            Log.e(LOG_TAG, "dispatchTouchEvent: " + result + " event received.");
 
-                b = super.dispatchTouchEvent(event);
+            Log.e(LOG_TAG, "dispatchTouchEvent calling super");
+            b = super.dispatchTouchEvent(event);
 
-                writeToFile("Activity's dispatchTouchEvent returns " + b + "\n\n");
+            writeToFile("Activity's dispatchTouchEvent returns " + b + "\n\n");
+            Log.e(LOG_TAG,"dispatchTouchEvent super returns " + b );
+  // Temp          }
 
-            }
-
-
-            // This checks if ACTION_UP's mWriteToMsgCache has been triggered
+            // This checks if onTouchEvent's ACTION_UP's mWriteToMsgCache has been triggered
             // after super.dispatchTouchEvent is called.
+            /* Temp
             if (!mWriteToMsgCache) {
-                Log.d(LOG_TAG, "print to display()");
+                Log.w(LOG_TAG, "print to display()");
                 printToDisplay();
             }
-
+            */
+            if(result.equals("UP"))
+                printToDisplay();
             return b;
 
         } else {
+            // NOT within space of interest
             return super.dispatchTouchEvent(event);
         }
     }
 
-
+    void setWriteToMsgCache(boolean setting){
+        mWriteToMsgCache = setting;
+        if(setting)
+            Log.w(LOG_TAG, "Write to Cached turned on remotely.");
+        else
+            Log.w(LOG_TAG, "Write to Cached turned off remotely.");
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        //Log.d(LOG_TAG, "onTouch");
         String result = "";
         boolean b = false;
 
-        int maxY = mTextView.getHeight() + 20; // 20 extra padding for the user
+        // Calculate Display Area to ignore touch events (only need height)
+        int maxY = mTextView.getHeight() + mToolbar.getHeight(); // Consider height of toolbar
 
         if ((event.getY() >= maxY)) {
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
                     result = "DOWN";
                     break;
+
                 case MotionEvent.ACTION_MOVE:
                     result = "MOVE";
                     break;
 
-                // Touch Dispatch events end here for views/viewgroups
-                // that ignore the touch event
+                // All Touch Dispatch events end here
                 case MotionEvent.ACTION_UP:
-
                     result = "UP";
-                    // Event was not consumed, end of touch process
-                    // if the current view is a simple view, then check
-                    // to see if the current onTouchEvent(event) returns
-                    // false (it will return true if the view captured
-                    // the event
+
+                    /* TEMP
+                    Log.d(LOG_TAG, "Activity onTouchEvent UP");
+                    writeToFile("Activity's onTouchEvent:\n");
+                    writeToFile(result + " event received.\n\n");
                     b = super.onTouchEvent(event);
-
-                    writeToFile("Activity's onTouchEvent receives "+result+" event.\n\n");
-                    // b = super.onTouchEvent(event);
-
                     writeToFile("Activity's onTouchEvent returns " + b + ".\n\n");
-                    mWriteToMsgCache = false;
+
+
+                    if(mGroup1Intercepts[2]!=1
+                            && mGroup2Intercepts[2]!=1
+                            && mViewIntercepts[2]!=1){
+                        Log.w(LOG_TAG, "Write to Cache turned off.");
+                        mWriteToMsgCache = false;
+                    }
+                    */
 
                     break;
+
                 case MotionEvent.ACTION_POINTER_UP:
-                    //mTextView.append("Activity onTouchEvent POINTER UP\n");
                     result = "POINTER UP";
+
                     break;
+
                 case MotionEvent.ACTION_POINTER_DOWN:
-                    //mTextView.append("Activity onTouchEvent POINTER DOWN\n");
                     result = "POINTER DOWN";
                     break;
+
                 case MotionEvent.ACTION_CANCEL:
-                    //mTextView.append("Activity onTouchEvent CANCEL\n");
                     result = "CANCEL";
+                    Log.d(LOG_TAG, "Activity dispatch CANCEL");
                     break;
 
             }
 
-
             //Log.d(LOG_TAG, "Activity onTouchEvent RETURNS: " + b + "\n");
-            if (mWriteToMsgCache) {
+ //   Temp        if (mWriteToMsgCache) {
 
-                writeToFile("Activity's onTouchEvent receives "+result+" event.\n\n");
+                writeToFile("Activity's onTouchEvent:\n");
+                writeToFile(result + " event received.\n\n");
+                Log.e(LOG_TAG, "onTouchEvent: " + result + " event received.");
+
+                Log.e(LOG_TAG, "onTouchEvent calling super");
                 b = super.onTouchEvent(event);
 
-                writeToFile("Activity onTouchEvent returns: " + b + "\n\n");
+                writeToFile("Activity onTouchEvent returns " + b + ".\n\n");
+                Log.e(LOG_TAG,"onTouchEvent super returns " + b );
 
-            }
+ //   Temp        }
             return b;
 
         } else {
-            return super.onTouchEvent(event);
+            Log.e(LOG_TAG, "onTouchEvent calling super");
+            super.onTouchEvent(event);
+            Log.e(LOG_TAG, "onTouchEvent super returns "+b);
+            return b;
         }
+    }
+    //------------------- Activity's Touch Event Framework END ------------------------------------
+
+
+
+    // Dialog Fragment for Intercept Settings
+    void showDialog() {
+
+        mInterceptsDialog.show(mFragMan, "Intercept Choice");
+
     }
 
 
-    private enum ViewType {VIEWGROUP,VIEW}
-
-    private static ViewType mTypeTouched = ViewType.VIEWGROUP;
-
-    /**
-     * Tells TouchFramework what was touched to help prevent
-     * Activity dispatchTouchEvent or onTouchEvents from writing to
-     * the display if you touch anything other than a designated viewgroup or view.
-     *
-     * @param type
-     * @return integer equivalent type
-     */
+    //--------------------REMOVE-------------------------------
     @Override
-    public void setViewType(View type) {
+    protected void onPause() {
+        super.onPause();
+        //Log.e(LOG_TAG, "onPause()");
+    }
 
-        if (type instanceof CustomViewGroup) {
-            mTypeTouched = ViewType.VIEWGROUP;
+    @Override
+    protected void onStop() {
+        super.onPause();
+        //Log.e(LOG_TAG, "onStop()");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onPause();
+        //Log.e(LOG_TAG, "onDestroy()");
+    }
+
+    // ----------------------------------------------------------
+
+    @Override
+    public void setDownIntercept(int selection) {
+
+        // Flip all intercepts off
+        mGroup1Intercepts[0] = 0;
+        mGroup2Intercepts[0] = 0;
+        mViewIntercepts[0] = 0;
+
+        // Flip selected intercept on
+        switch (selection) {
+
+            case 1:
+                mGroup1Intercepts[0] = 1;
+                break;
+            case 2:
+                mGroup2Intercepts[0] = 1;
+                break;
+            case 3:
+                mViewIntercepts[0] = 1;
+                break;
+            default:
+                break;
         }
 
-        if (type instanceof CustomTextView) {
-            mTypeTouched = ViewType.VIEW;
+        mStoredInterceptsEditor.putInt(mKeys[0], mGroup1Intercepts[0]);
+        mStoredInterceptsEditor.putInt(mKeys[1], mGroup2Intercepts[0]);
+        mStoredInterceptsEditor.putInt(mKeys[2], mViewIntercepts[0]);
+        mStoredInterceptsEditor.commit();
+    }
+
+    @Override
+    public void setMoveIntercept(int selection) {
+
+        mGroup1Intercepts[1] = 0;
+        mGroup2Intercepts[1] = 0;
+        mViewIntercepts[1] = 0;
+
+        switch (selection) {
+
+            case 1:
+                mGroup1Intercepts[1] = 1;
+                break;
+            case 2:
+                mGroup2Intercepts[1] = 1;
+                break;
+            case 3:
+                mViewIntercepts[1] = 1;
+                break;
+            default:
+                break;
         }
+
+        mStoredInterceptsEditor.putInt(mKeys[3], mGroup1Intercepts[1]);
+        mStoredInterceptsEditor.putInt(mKeys[4], mGroup2Intercepts[1]);
+        mStoredInterceptsEditor.putInt(mKeys[5], mViewIntercepts[1]);
+        mStoredInterceptsEditor.commit();
+    }
+
+    @Override
+    public void setUpIntercept(int selection) {
+
+        mGroup1Intercepts[2] = 0;
+        mGroup2Intercepts[2] = 0;
+        mViewIntercepts[2] = 0;
+
+        switch (selection) {
+
+            case 1:
+                mGroup1Intercepts[2] = 1;
+                break;
+            case 2:
+                mGroup2Intercepts[2] = 1;
+                break;
+            case 3:
+                mViewIntercepts[2] = 1;
+                break;
+            default:
+                break;
+        }
+
+        mStoredInterceptsEditor.putInt(mKeys[6], mGroup1Intercepts[2]);
+        mStoredInterceptsEditor.putInt(mKeys[7], mGroup2Intercepts[2]);
+        mStoredInterceptsEditor.putInt(mKeys[8], mViewIntercepts[2]);
+        mStoredInterceptsEditor.commit();
+    }
+
+    // Pass Intercept settings to their respective View objects
+    @Override
+    public void setIntercepts() {
+
+        mGroup1.setIntercepts(mGroup1Intercepts);
+        mGroup2.setIntercepts(mGroup2Intercepts);
+        mView.setIntercepts(mViewIntercepts);
+
 
     }
 
+
+    //------------------- Tool/Action Bar BEGIN ---------------------------------------------------
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -321,74 +506,7 @@ public class TouchFramework extends ActionBarActivity
 
         return super.onOptionsItemSelected(item);
     }
-
-    // Logic for Preferences for Intercepts
-    void showDialog() {
-
-
-        FragmentManager manager = getFragmentManager();
-        InterceptsDialog interceptsDialog = InterceptsDialog.newInstance();
-        interceptsDialog.show(manager, "Intercept Choice");
-
-
-    }
-
-    // TODO: Do I need to set no intercepts here?
-
-    @Override
-    public void setDownIntercept(int selection) {
-
-        switch(selection){
-            case 1:
-                // send intercept to View Group 1
-                mGroup1.setIntercept(1);
-
-                break;
-            case 2:
-                // send intercept to View Group 2
-                mGroup2.setIntercept(1);
-                break;
-            case 3:
-                // send intercept to View
-                break;
-        }
-    }
-
-    @Override
-    public void setMoveIntercept(int selection) {
-
-        switch(selection){
-            case 1:
-                // send intercept to View Group 1
-                mGroup1.setIntercept(2);
-                break;
-            case 2:
-                // send intercept to View Group 2
-                mGroup2.setIntercept(2);
-                break;
-            case 3:
-                // send intercept to View
-                break;
-        }
-    }
-
-    @Override
-    public void setUpIntercept(int selection) {
-
-        switch(selection){
-            case 1:
-                // send intercept to View Group 1
-                mGroup1.setIntercept(3);
-                break;
-            case 2:
-                // send intercept to View Group 2
-                mGroup2.setIntercept(3);
-                break;
-            case 3:
-                // send intercept to View
-                break;
-        }
-    }
+    //------------------- Tool/Action Bar BEGIN ---------------------------------------------------
 
 
 }

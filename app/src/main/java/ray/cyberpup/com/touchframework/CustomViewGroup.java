@@ -6,8 +6,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
-import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -26,29 +26,15 @@ public class CustomViewGroup extends FrameLayout {
     private TouchFramework mActivity;
     private Paint mTextPaint;
 
-    private MODE mDown, mMove, mUp;
-    enum MODE {INTERCEPT};
 
-    void setIntercept(int eventToIntercept){
+    // int[event type] => "down"=0, "move"=1, "up"=2
+    // i.e. int[0] = 1  => down intercept set
+    // i.e. int[1] = 0 => move intercept not set
+    private int[] mIntercepts;
+    void setIntercepts(int[] intercepts){
 
-        switch(eventToIntercept){
-            case 1:
-                mDown = MODE.INTERCEPT;
-                break;
-            case 2:
-                mMove = MODE.INTERCEPT;
-                break;
-            case 3:
-                mUp = MODE.INTERCEPT;
-                break;
-        }
+        mIntercepts = intercepts;
 
-    }
-
-    // Interface to communicate back to Activity that this view's type
-    // and assigned color
-    protected interface Bridge{
-        public void setViewType(View type);
     }
 
     public CustomViewGroup(Context context) {
@@ -94,9 +80,6 @@ public class CustomViewGroup extends FrameLayout {
     protected void dispatchDraw(Canvas canvas) {
 
         super.dispatchDraw(canvas);
-
-
-
     }
 
     @Override
@@ -118,7 +101,6 @@ public class CustomViewGroup extends FrameLayout {
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
 
-        mActivity.setViewType(this);
         mTextView.setTextColor(mTouchColor);
 
         return processMotionEvents("dispatchTouchEvent", event);
@@ -137,6 +119,25 @@ public class CustomViewGroup extends FrameLayout {
 
     }
 
+    // Temporary
+    private void callSuper(String callingMethod, MotionEvent event){
+
+        Log.d(LOG_TAG, mText+"'s "+callingMethod + " calling super");
+
+        switch(callingMethod){
+            case "dispatchTouchEvent":
+                super.dispatchTouchEvent(event);
+                break;
+            case "onInterceptTouchEvent":
+                super.onInterceptTouchEvent(event);
+                break;
+            case "onTouchEvent":
+                super.onTouchEvent(event);
+                break;
+        }
+    }
+
+
     private boolean processMotionEvents(String callingMethod, MotionEvent event){
 
         String result="";
@@ -145,55 +146,113 @@ public class CustomViewGroup extends FrameLayout {
         switch(event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
                 result="DOWN";
-                if(mDown == MODE.INTERCEPT)
-                    return writeToFile(callingMethod, result, true);
+
+                if(mIntercepts[0] == 1) {
+
+                    writeToLog(callingMethod, result, true);
+
+                    callSuper(callingMethod, event);
+                    return true;
+                } else {
+
+                    writeToLog(callingMethod, result, false);
+
+                }
                 break;
 
             case MotionEvent.ACTION_MOVE:
                 result="MOVE";
-                if(mMove == MODE.INTERCEPT)
-                    return writeToFile(callingMethod, result, true);
+
+
+                if(mIntercepts[1] == 1) {
+
+                    writeToLog(callingMethod, result, true);
+
+                    callSuper(callingMethod, event);
+                    return true;
+                } else {
+
+                    writeToLog(callingMethod, result, false);
+
+                }
                 break;
 
             case MotionEvent.ACTION_UP:
                 result="UP";
-                if(mUp == MODE.INTERCEPT)
-                    return writeToFile(callingMethod, result, true);
+
+                if(mIntercepts[2] == 1) {
+
+                    writeToLog(callingMethod, result, true);
+
+                    callSuper(callingMethod, event);
+                    if(callingMethod.equals("onTouchEvent")){
+                        mActivity.setWriteToMsgCache(false);
+                        mActivity.printToDisplay();
+                        mActivity.clearCache();
+                    }
+                    return true;
+                } else {
+
+                    writeToLog(callingMethod, result, false);
+
+                }
                 break;
 
             case MotionEvent.ACTION_CANCEL:
                 result="CANCEL";
+
+                mActivity.writeToFile(mText+"'s "+ callingMethod +":\n");
+                mActivity.writeToFile(result+" event received.\n\n");
+
+                Log.d(LOG_TAG, callingMethod +": "+result+" event received.");
+
+                System.out.println(mText + callingMethod+" @Cancel: "+mActivity.mMessageCache);
+
+                // if View Group intercepts the UP event,
+                // the activity's Up will not be triggered, so printToDisplay must occur here.
+                if((mIntercepts[2] == 1)  && (callingMethod.equals("onTouchEvent"))){
+                    mActivity.printToDisplay();
+                    mActivity.clearCache();
+                }
+
                 break;
         }
 
         boolean b=false;
-        // Otherwise, returns false
+
+        Log.d(LOG_TAG, mText+"'s "+callingMethod + " calling super");
         switch(callingMethod){
             case "dispatchTouchEvent":
-                mActivity.writeToFile(mText + "'s " + callingMethod + " receives " + result +"\n\n");
                 b = super.dispatchTouchEvent(event);
                 break;
             case "onInterceptTouchEvent":
-                mActivity.writeToFile(mText + "'s " + callingMethod + " receives " + result +"\n\n");
                 b = super.onInterceptTouchEvent(event);
                 break;
             case "onTouchEvent":
-                mActivity.writeToFile(mText + "'s " + callingMethod + " receives " + result +"\n\n");
                 b = super.onTouchEvent(event);
                 break;
         }
 
         mActivity.writeToFile(mText + "'s " + callingMethod + " returns " + b +"\n\n");
+        Log.d(LOG_TAG, mText+"'s "+callingMethod + " returns " + b);
         return b;
     }
 
-    private boolean writeToFile(String callingMethod, String event,  boolean result){
+    private void writeToLog(String callingMethod, String result, boolean isIntercepted){
 
-        mActivity.writeToFile(mText +"'s "+callingMethod
-                                +" received " + event + " event and returns " + result +"\n\n");
+        mActivity.writeToFile(mText+"'s "+callingMethod+":\n");
+        Log.d(LOG_TAG, mText + "'s " + callingMethod + ":");
 
-        return result;
+        if(isIntercepted){
+            mActivity.writeToFile(result+" event intercepted.\n\n");
+            Log.d(LOG_TAG, result+" event intercepted.");
+        }else{
+            mActivity.writeToFile(result+" event ignored.\n\n");
+            Log.d(LOG_TAG, result+" event ignored.");
+        }
+
     }
+
 
     private TextView mTextView;
     /**
